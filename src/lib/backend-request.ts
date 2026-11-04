@@ -12,14 +12,14 @@ export async function backendRequest(request: NextRequest, path: string): Promis
   if (request.method !== "GET") {
     const expected = process.env.UI_ORIGIN ?? request.nextUrl.origin;
     if (request.headers.get("origin") !== expected || request.headers.get("sec-fetch-site") === "cross-site") return error("Invalid origin.", 403);
-    if (!/^application\/json(?:\s*;|$)/i.test(request.headers.get("content-type") ?? "")) return error("JSON content type required.", 415);
+    if (request.method !== "DELETE" && !/^application\/json(?:\s*;|$)/i.test(request.headers.get("content-type") ?? "")) return error("JSON content type required.", 415);
   }
   try {
     const session = await auth();
     const token = session.userId ? await session.getToken() : null;
     if (!token) return error("Sign in required.", 401);
     let body: string | undefined;
-    if (request.method !== "GET") {
+    if (request.method !== "GET" && request.method !== "DELETE") {
       const length = Number(request.headers.get("content-length") ?? 0);
       if (length > 1024 * 1024) return error("Request is too large.", 413);
       body = await request.text();
