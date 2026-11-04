@@ -1,6 +1,6 @@
 :root {
   color-scheme: dark;
-  --background: #121212;
+  --background: #000;
   --surface: #202020;
   --surface-raised: #303030;
   --surface-hover: #3a3a3a;
@@ -39,23 +39,35 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .unavailable h1 { max-width: 480px; margin: 0; font-size: 20px; font-weight: 400; line-height: 1.5; }
 
 .unavailable p { margin: 10px 0 0; color: var(--text-muted); font-size: 13px; }
-.workspace-shell { min-height: 100dvh; display: grid; grid-template-columns: 204px minmax(0, 1fr); }
-.workspace-sidebar { display: flex; flex-direction: column; padding: 32px 16px; border-right: 1px solid #343434; }
-.workspace-brand { margin: 0 0 28px 12px; color: var(--text); font-size: 20px; font-weight: 400; letter-spacing: -.03em; }
+.workspace-shell { min-height: 100dvh; display: grid; grid-template-columns: 204px minmax(0, 1fr); background: #000; transition: grid-template-columns 220ms ease; }
+.workspace-shell--collapsed { grid-template-columns: 68px minmax(0, 1fr); }
+.workspace-sidebar { position: relative; display: flex; flex-direction: column; padding: 18px 16px 32px; border-right: 1px solid #343434; }
+.workspace-brand { display: flex; justify-content: center; align-items: center; height: 36px; margin: 0 0 28px; color: var(--text); font-size: 20px; font-weight: 400; letter-spacing: -.03em; }
+.workspace-sidebar-toggle { position: absolute; z-index: 3; top: 16px; left: 14px; display: grid; place-items: center; width: 32px; height: 32px; padding: 0; border: 0; border-radius: var(--radius); background: transparent; color: var(--text-muted); cursor: pointer; }
+.workspace-sidebar-toggle:hover { background: var(--surface-hover); color: #fff; }
+.workspace-shell--collapsed .workspace-sidebar { padding: 56px 10px 32px; }
+.workspace-shell--collapsed .workspace-sidebar-toggle { left: 18px; }
+.workspace-shell--collapsed .workspace-brand { font-size: 11px; margin-bottom: 28px; }
+.workspace-shell--collapsed .workspace-nav-item { justify-content: center; padding-inline: 0; }
+.workspace-shell--collapsed .workspace-nav-label { display: none; }
+.workspace-shell--collapsed .workspace-account { margin-left: 0; }
+.workspace-shell--collapsed .workspace-account .dropdown-trigger { padding-inline: 4px; gap: 2px; }
 .workspace-sidebar nav { display: grid; gap: 5px; }
 .workspace-nav-item { display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px 14px; border: 0; border-radius: var(--radius); background: transparent; color: var(--text-muted); text-align: left; font-size: 14px; cursor: pointer; }
 .workspace-nav-item--current { color: var(--text); background: var(--surface-raised); }
 .workspace-nav-item:disabled { opacity: .45; cursor: not-allowed; }
-.workspace-account { margin: auto 0 0 12px; padding-top: 28px; }
+.workspace-account { margin: auto 0 48px 12px; padding-top: 28px; }
 .workspace-content { width: 100%; max-width: 1310px; margin: 0 auto; padding: 66px clamp(28px, 5vw, 76px) 90px; }
 .workspace-content h1 { margin: 0; font-size: 28px; font-weight: 300; }
 @media (max-width: 760px) {
-  .workspace-shell { display: block; }
-  .workspace-sidebar { flex-direction: row; align-items: center; gap: 12px; padding: 16px; border-right: 0; border-bottom: 1px solid #343434; }
-  .workspace-brand { margin: 0; font-size: 16px; }
+  .workspace-shell, .workspace-shell--collapsed { display: block; }
+  .workspace-sidebar, .workspace-shell--collapsed .workspace-sidebar { flex-direction: row; align-items: center; gap: 12px; padding: 10px 18px; border-right: 0; border-bottom: 1px solid #343434; }
+  .workspace-brand, .workspace-shell--collapsed .workspace-brand { flex: none; height: 30px; margin: 0; font-size: 16px; }
+  .workspace-sidebar-toggle, .workspace-shell--collapsed .workspace-sidebar-toggle { position: static; flex: none; }
+  .workspace-shell--collapsed .workspace-nav-item { width: 42px; flex: none; }
   .workspace-sidebar nav { display: flex; flex: 1; min-width: 0; overflow-x: auto; }
   .workspace-nav-item { width: auto; padding: 10px; white-space: nowrap; font-size: 12px; }
-  .workspace-account { margin: 0; padding: 0; }
+  .workspace-account, .workspace-shell--collapsed .workspace-account { margin: 0; padding: 0; }
   .workspace-content { padding: 36px 20px; }
 }
 

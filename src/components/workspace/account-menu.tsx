@@ -7,7 +7,7 @@ import { Dialog } from "@/components/ui/dialog";
 import { Dropdown } from "@/components/ui/dropdown";
 import { useServiceAvailable } from "@/components/service/service-gate";
 
-export function AccountMenu() {
+export function AccountMenu({ compact = false }: { compact?: boolean }) {
   const { signOut } = useClerk();
   const available = useServiceAvailable();
   const [open, setOpen] = useState(false);
@@ -22,7 +22,7 @@ export function AccountMenu() {
   }
   if (!available) return null;
   return <>
-    <Dropdown label="Account" items={[{ label: "Sign out", onSelect: () => { setError(false); setOpen(true); } }]} />
+    <Dropdown label={compact ? "⋯" : "Account"} accessibleLabel="Account" items={[{ label: "Sign out", onSelect: () => { setError(false); setOpen(true); } }]} />
     <Dialog open={open} onOpenChange={(next) => { if (!busy) setOpen(next); }} title="Sign out?" compact>
       {error && <p className="account-error" role="alert">Could not sign out. Please try again.</p>}
       <div className="account-actions"><Button variant="quiet" disabled={busy} onClick={() => setOpen(false)}>Cancel</Button><Button disabled={busy} onClick={() => void confirmSignOut()}>Sign out</Button></div>
