@@ -10,7 +10,7 @@ export type Step =
   | { type: "click"; x: number; y: number };
 export type Definition = { name: string; description: string; executionTarget?: "browser" | "windows"; inputs: string[]; steps: Step[] };
 export type Workflow = { id: string; version: number; definition: Definition; createdAt: string };
-export type Run = { id: string; status: string; workflowId?: string; workflowName?: string; createdAt?: string; result?: unknown };
+export type Run = { id: string; status: string; workflowId?: string; workflowName?: string; workflowVersion?: number; createdAt?: string; result?: unknown; liveViewUrl?: string; recordingStatus?: "pending" | "saved" | "failed" | "unavailable" | "deleted"; steps?: { status: string; message?: string }[] };
 export class RequestError extends Error { constructor(message: string, readonly status: number) { super(message); } }
 export async function request<T>(path: string, options?: { body?: unknown; version?: number }): Promise<T> {
   try {

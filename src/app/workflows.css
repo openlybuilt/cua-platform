@@ -1,5 +1,5 @@
 .home-heading, .home-section-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
-.home-heading { margin-bottom: 64px; }
+.home-heading { min-height: 44px; margin-bottom: 64px; }
 .home-heading h1 { margin: 0; font-size: 28px; font-weight: 300; }
 .home-create { display: inline-flex; align-items: center; gap: 10px; padding: 11px 16px; border: 1px solid var(--text-muted); border-radius: var(--radius); background: transparent; color: var(--text); font-size: 14px; cursor: pointer; }
 .home-create:hover { background: var(--surface-raised); }

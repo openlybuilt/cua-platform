@@ -74,3 +74,9 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 
 .account-actions { display: flex; justify-content: flex-end; gap: 8px; }
 .account-error { color: var(--danger); font-size: 13px; }
+
+@media (min-width: 761px) {
+  .workspace-sidebar { position: sticky; top: 0; height: 100dvh; }
+}
+
+html { scrollbar-gutter: stable; }
