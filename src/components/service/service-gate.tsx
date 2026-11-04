@@ -34,16 +34,19 @@ export function ServiceGate({ children }: { children: ReactNode }) {
         if (!controller.signal.aborted) setAvailability("unavailable");
       } finally { checking.current = false; }
     }
+    const onUnavailable = () => setAvailability("unavailable");
     const onVisibility = () => { if (!document.hidden) void check(); };
     void check();
     const timer = window.setInterval(check, 3000);
     document.addEventListener("visibilitychange", onVisibility);
+    window.addEventListener("openly:service-unavailable", onUnavailable);
     window.addEventListener("online", check);
     window.addEventListener("focus", check);
     return () => {
       controller.abort();
       window.clearInterval(timer);
       document.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener("openly:service-unavailable", onUnavailable);
       window.removeEventListener("online", check);
       window.removeEventListener("focus", check);
     };
