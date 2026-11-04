@@ -137,3 +137,10 @@
 @media (max-width: 420px) {
   .editor-action-menu .dropdown-trigger { width: 40px; min-height: 40px; padding: 0; font-size: 0; }
 }
+
+.run-loading-state { display: inline-flex; align-items: center; gap: 8px; color: var(--text-muted); font-size: 12px; white-space: nowrap; }
+.run-loading-grid { display: grid; grid-template-columns: repeat(3, 4px); gap: 2px; }
+.run-loading-grid span { width: 4px; height: 4px; border-radius: 1px; background: #f5f5f5; animation: run-pixel 650ms ease-in-out infinite; }
+.run-loading-label { text-transform: capitalize; }
+@keyframes run-pixel { 0%, 100% { opacity: .15; } 18%, 42% { opacity: 1; } 62% { opacity: .15; } }
+@media (prefers-reduced-motion: reduce) { .run-loading-grid span { animation: none; opacity: .5; } }

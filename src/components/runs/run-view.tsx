@@ -2,12 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { request, type Run, type Workflow } from "@/lib/workflows/contracts";
+import { RunLoadingState } from "./run-loading-state";
 import { stepChoices, stepSummary } from "@/components/workflows/step-editor";
 
 type Event = { timestamp: string; kind: string; status: string; stepIndex?: number; stepType?: string; action?: string; durationMs?: number; usage?: { inputTokens: number; outputTokens: number } };
 const terminal = new Set(["completed", "failed", "cancelled", "interrupted", "outcome_unknown"]);
 export function RunView({ initial, onBack }: { initial: Run; onBack: () => void }) {
   const [run, setRun] = useState(initial);
+  const [now, setNow] = useState(() => Date.now());
   const [workflow, setWorkflow] = useState<Workflow>();
   const [events, setEvents] = useState<Event[]>();
   const [error, setError] = useState("");
@@ -16,9 +18,18 @@ export function RunView({ initial, onBack }: { initial: Run; onBack: () => void 
   useEffect(() => { let active = true; if (run.workflowId && run.workflowVersion) void request<Workflow>(`workflows/${run.workflowId}/versions/${run.workflowVersion}`).then((value) => { if (active) setWorkflow(value); }).catch(() => { if (active) setError("Could not load the workflow version."); }); return () => { active = false; }; }, [run.workflowId, run.workflowVersion]);
   useEffect(() => { let active = true; let timer: number | undefined; async function refresh() { try { const next = await request<Run>(`runs/${initial.id}`); if (!active) return; setRun(next); if (!terminal.has(next.status) || next.recordingStatus === "pending") timer = window.setTimeout(refresh, 1500); } catch { if (active) { setError("Run status is temporarily unavailable."); timer = window.setTimeout(refresh, 5000); } } } void refresh(); return () => { active = false; if (timer) window.clearTimeout(timer); }; }, [initial.id]);
   useEffect(() => { let active = true; let timer: number | undefined; async function refresh() { try { const logs = await request<Event[]>(`runs/${initial.id}/events`); if (active) { setEvents(logs); setLogsError(false); } } catch { if (active) setLogsError(true); } if (active && !terminal.has(run.status)) timer = window.setTimeout(refresh, 1500); } void refresh(); return () => { active = false; if (timer) window.clearTimeout(timer); }; }, [initial.id, run.status]);
+  useEffect(() => {
+    if (terminal.has(run.status)) return;
+    setNow(Date.now());
+    const timer = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(timer);
+  }, [run.id, run.status]);
+  const startedAt = run.createdAt ? Date.parse(run.createdAt) : NaN;
+  const seconds = Number.isFinite(startedAt) ? Math.max(0, Math.floor((now - startedAt) / 1000)) : null;
+  const elapsed = seconds === null ? "" : seconds < 60 ? `${seconds}s` : `${Math.floor(seconds / 60)}m ${seconds % 60}s`;
   async function stop() { setBusy(true); try { await request(`runs/${run.id}/cancel`, { body: {} }); } catch { setError("Could not stop the run."); } finally { setBusy(false); } }
   return <div className="run-page">
-    <header className="run-header"><button type="button" onClick={onBack}>← Back</button><h1>{run.workflowName || workflow?.definition.name || "Workflow run"}</h1><span>{run.status.replaceAll("_", " ")}</span></header>
+    <header className="run-header"><button type="button" onClick={onBack}>← Back</button><h1>{run.workflowName || workflow?.definition.name || "Workflow run"}</h1>{terminal.has(run.status) ? <span>{run.status.replaceAll("_", " ")}</span> : <RunLoadingState status={run.status} elapsed={elapsed} />}</header>
     <main className="run-layout">
       <section className="run-progress">
         <h2>Workflow progress</h2>
