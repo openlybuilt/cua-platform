@@ -127,3 +127,13 @@
 .run-steps .run-step-status--cancelled, .run-steps .run-step-status--interrupted { color: var(--warning); }
 .run-canvas-message { margin: 28px; color: var(--text-muted); font-size: 13px; }
 @media (max-width: 760px) { .run-canvas { min-height: 440px; } }
+
+.editor-controls { display: flex; align-items: center; justify-content: flex-end; gap: 12px; min-width: 0; }
+.editor-play { display: grid; place-items: center; flex: none; width: 40px; height: 40px; padding: 0; border: 1px solid var(--text-muted); border-radius: 50%; background: transparent; color: var(--text); cursor: pointer; }
+.editor-play:hover:not(:disabled) { background: var(--surface-hover); }
+.editor-play:disabled { opacity: .4; cursor: not-allowed; }
+.editor-play:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+
+@media (max-width: 420px) {
+  .editor-action-menu .dropdown-trigger { width: 40px; min-height: 40px; padding: 0; font-size: 0; }
+}

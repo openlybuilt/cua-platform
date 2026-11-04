@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeft, CalendarClock } from "lucide-react";
+import { ArrowLeft, CalendarClock, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
 import { Dropdown } from "@/components/ui/dropdown";
@@ -113,13 +113,13 @@ export function WorkflowEditor({ workflow, windowsAvailable, onBack, onRunStarte
       <div className="editor-leading"><button className="editor-back" type="button" aria-label="Back to workflows" disabled={leaving} onClick={() => void back()}><ArrowLeft size={20} /></button>
       <div className="editor-title"><h1>{save.draft.name}</h1><span role="status">{displayStatus}</span></div></div>
       <button ref={scheduleButton} type="button" className="editor-schedule" aria-label="Schedule workflow" title="Schedule workflow" disabled={!save.draft.steps.length || leaving} onClick={() => void openSchedule()}><CalendarClock size={19}/></button>
-      <div className="editor-header-actions"><button type="button" className="editor-quiet" disabled={!save.canUndo || leaving} onClick={() => { setPanel(undefined); save.undo(); }}>Undo</button><button type="button" className="editor-quiet" disabled={!save.canRedo || leaving} onClick={() => { setPanel(undefined); save.redo(); }}>Redo</button><button type="button" className="editor-quiet" onClick={() => { setDetailsName(save.draft.name); setDetailsError(""); setDetails(true); }}>Details</button><button type="button" className="button" disabled={!save.draft.steps.length || leaving} onClick={() => void openRun()}>Run workflow</button></div>
-      <div className="editor-action-menu"><Dropdown label="Actions" items={[
+      <div className="editor-controls"><div className="editor-header-actions"><button type="button" className="editor-quiet" disabled={!save.canUndo || leaving} onClick={() => { setPanel(undefined); save.undo(); }}>Undo</button><button type="button" className="editor-quiet" disabled={!save.canRedo || leaving} onClick={() => { setPanel(undefined); save.redo(); }}>Redo</button><button type="button" className="editor-quiet" onClick={() => { setDetailsName(save.draft.name); setDetailsError(""); setDetails(true); }}>Details</button></div>
+      <div className="editor-action-menu"><Dropdown label="Actions" accessibleLabel="Workflow actions" items={[
         { label: "Undo", disabled: !save.canUndo || leaving, onSelect: () => { setPanel(undefined); save.undo(); } },
         { label: "Redo", disabled: !save.canRedo || leaving, onSelect: () => { setPanel(undefined); save.redo(); } },
-        { label: "Run workflow", disabled: !save.draft.steps.length || leaving, onSelect: () => void openRun() },
         { label: "Details", onSelect: () => { setDetailsName(save.draft.name); setDetailsError(""); setDetails(true); } },
       ]}/></div>
+      <button type="button" className="editor-play" aria-label="Run workflow" title="Run workflow" disabled={!save.draft.steps.length || leaving} onClick={() => void openRun()}><Play size={17} fill="currentColor" aria-hidden="true" /></button></div>
     </header>
     {scheduleError && <div className="editor-alert" role="alert">{scheduleError}</div>}
     {save.message && <div className="editor-alert" role="alert">{save.message} {!save.conflict && <button type="button" onClick={() => void save.flush()}>Try again</button>}</div>}
