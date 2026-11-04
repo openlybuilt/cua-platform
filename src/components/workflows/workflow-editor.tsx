@@ -1,15 +1,16 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeft, Pencil } from "lucide-react";
+import { ArrowLeft, CalendarClock, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
 import { Dropdown } from "@/components/ui/dropdown";
 import { Select } from "@/components/ui/select";
 import { useServiceAvailable } from "@/components/service/service-gate";
-import type { Definition, Step, Workflow } from "@/lib/workflows/contracts";
+import { request, type Definition, type Step, type Workflow } from "@/lib/workflows/contracts";
 import { StepEditor, stepChoices, stepSummary } from "./step-editor";
 import { useWorkflowDraft } from "./use-workflow-draft";
+import { ScheduleDialog } from "@/components/scheduling/schedule-dialog";
 
 type Panel = { key: number; index?: number; insertAt?: number; kind?: Step["type"] };
 function inputNames(steps: Step[]) {
@@ -22,6 +23,9 @@ export function WorkflowEditor({ workflow, windowsAvailable, onBack }: { workflo
   const [panel, setPanel] = useState<Panel>();
   const slot = useRef<number | null>(null);
   const [details, setDetails] = useState(false);
+  const [scheduleWorkflow, setScheduleWorkflow] = useState<Workflow>();
+  const [scheduleError, setScheduleError] = useState("");
+  const scheduleButton = useRef<HTMLButtonElement>(null);
   const [detailsName, setDetailsName] = useState(workflow.definition.name);
   const [detailsError, setDetailsError] = useState("");
   const [confirmDiscard, setConfirmDiscard] = useState(false);
@@ -72,6 +76,12 @@ export function WorkflowEditor({ workflow, windowsAvailable, onBack }: { workflo
     setLeaving(false);
     if (saved) onBack();
   }
+  async function openSchedule() {
+    setScheduleError("");
+    if (!await save.flush()) return;
+    try { setScheduleWorkflow(await request<Workflow>(`workflows/${workflow.id}`)); }
+    catch { setScheduleError("Could not open scheduling. Please try again."); }
+  }
   function changeTarget(value: string) {
     const next = value as "browser" | "windows";
     const incompatible = save.draft.steps.some((step) => step.type === "scroll" && (next === "browser" ? "wheelTicks" in step : "pixels" in step));
@@ -91,10 +101,17 @@ export function WorkflowEditor({ workflow, windowsAvailable, onBack }: { workflo
   const displayStatus = save.status === "saving" ? "Saving…" : save.status === "pending" ? "Unsaved changes" : save.status === "error" ? "Not saved" : showSaved ? "Saved" : "";
   return <div className="editor-page">
     <header className="editor-header">
-      <button className="editor-back" type="button" aria-label="Back to workflows" disabled={leaving} onClick={() => void back()}><ArrowLeft size={20} /></button>
-      <div className="editor-title"><h1>{save.draft.name}</h1><span role="status">{displayStatus}</span></div>
+      <div className="editor-leading"><button className="editor-back" type="button" aria-label="Back to workflows" disabled={leaving} onClick={() => void back()}><ArrowLeft size={20} /></button>
+      <div className="editor-title"><h1>{save.draft.name}</h1><span role="status">{displayStatus}</span></div></div>
+      <button ref={scheduleButton} type="button" className="editor-schedule" aria-label="Schedule workflow" title="Schedule workflow" disabled={!save.draft.steps.length || leaving} onClick={() => void openSchedule()}><CalendarClock size={19}/></button>
       <div className="editor-header-actions"><button type="button" className="editor-quiet" disabled={!save.canUndo || leaving} onClick={() => { setPanel(undefined); save.undo(); }}>Undo</button><button type="button" className="editor-quiet" disabled={!save.canRedo || leaving} onClick={() => { setPanel(undefined); save.redo(); }}>Redo</button><button type="button" className="editor-quiet" onClick={() => { setDetailsName(save.draft.name); setDetailsError(""); setDetails(true); }}><Pencil size={15} aria-hidden="true" />Details</button></div>
+      <div className="editor-action-menu"><Dropdown label="Actions" items={[
+        { label: "Undo", disabled: !save.canUndo || leaving, onSelect: () => { setPanel(undefined); save.undo(); } },
+        { label: "Redo", disabled: !save.canRedo || leaving, onSelect: () => { setPanel(undefined); save.redo(); } },
+        { label: "Details", onSelect: () => { setDetailsName(save.draft.name); setDetailsError(""); setDetails(true); } },
+      ]}/></div>
     </header>
+    {scheduleError && <div className="editor-alert" role="alert">{scheduleError}</div>}
     {save.message && <div className="editor-alert" role="alert">{save.message} {!save.conflict && <button type="button" onClick={() => void save.flush()}>Try again</button>}</div>}
     <div className={`editor-layout${panel ? " editor-layout--panel" : ""}`}>
       <aside className="editor-steps"><h2>Steps</h2><p>Click a step to add it.</p>{stepChoices.map((choice) => <button type="button" key={choice.type} disabled={save.draft.steps.length >= 30} onClick={() => openPanel(undefined, choice.type)}><span>{choice.icon}</span>{choice.title}</button>)}</aside>
@@ -111,6 +128,7 @@ export function WorkflowEditor({ workflow, windowsAvailable, onBack }: { workflo
       </div>
       {panel && <aside ref={settingsRef} className="editor-settings"><StepEditor key={panel.key} initial={panel.index === undefined ? undefined : save.draft.steps[panel.index]} initialKind={panel.kind} target={save.draft.executionTarget} onChange={changeStep} onClose={() => setPanel(undefined)} /></aside>}
     </div>
+    {scheduleWorkflow && <ScheduleDialog workflow={scheduleWorkflow} open={available} onOpenChange={(next) => { if (!next) setScheduleWorkflow(undefined); }} returnFocus={() => scheduleButton.current?.focus()} />}
     <Dialog open={details && available} onOpenChange={closeDetails} title="Workflow details" description="Edit the workflow’s name, description, and VM type.">
       <div className="workflow-fields">
         <label>Name<input maxLength={120} value={detailsName} onChange={(event) => { const value = event.target.value; setDetailsName(value); if (value.trim()) { setDetailsError(""); save.update((current) => ({ ...current, name: value.trim() })); } }} /></label>
