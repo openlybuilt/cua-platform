@@ -1,6 +1,5 @@
 "use client";
 
-import { AccountMenu } from "./account-menu";
 import { Clock3, LayoutGrid, Menu, Settings } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 
@@ -25,7 +24,6 @@ export function WorkspaceShell({ children, view, onViewChange }: { children: Rea
         <button type="button" className={`workspace-nav-item${view === "history" ? " workspace-nav-item--current" : ""}`} aria-label="Run history" title={collapsed ? "Run history" : undefined} aria-current={view === "history" ? "page" : undefined} onClick={() => onViewChange("history")}><Clock3 size={17} aria-hidden="true" /><span className="workspace-nav-label">Run history</span></button>
         <button type="button" className={`workspace-nav-item${view === "settings" ? " workspace-nav-item--current" : ""}`} aria-label="Settings" title={collapsed ? "Settings" : undefined} aria-current={view === "settings" ? "page" : undefined} onClick={() => onViewChange("settings")}><Settings size={17} aria-hidden="true" /><span className="workspace-nav-label">Settings</span></button>
       </nav>
-      <div className="workspace-account"><AccountMenu compact={collapsed} /></div>
     </aside>
     <main className="workspace-content">{children}</main>
   </div>;
