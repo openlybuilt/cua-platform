@@ -34,3 +34,6 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }
+.auth-page, .unavailable { min-height: 100dvh; display: grid; place-content: center; padding: 28px; }
+.unavailable { text-align: center; }
+.unavailable h1 { max-width: 480px; margin: 0; font-size: 20px; font-weight: 400; line-height: 1.5; }
