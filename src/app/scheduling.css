@@ -91,4 +91,21 @@
   .workspace-nav-item svg { flex: none; }
 }
 
-.workspace-content .run-history h1 { margin-bottom: 28px; }
+
+.run-history-page { min-height: 100dvh; background: #000; }
+.run-history-header { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; min-height: 76px; padding: 16px 28px; border-bottom: 1px solid #383838; }
+.run-history-header .editor-back { justify-self: start; }
+.run-history-header h1 { margin: 0; font-size: 20px; font-weight: 300; }
+.run-history-canvas { min-height: calc(100dvh - 76px); padding: 72px 20px; background: #171717 radial-gradient(#333 1px, transparent 1px); background-size: 22px 22px; }
+.run-history-cards { display: grid; gap: 20px; width: min(380px, 100%); margin: 0 auto; }
+.run-history-card { display: grid; gap: 7px; width: 100%; padding: 16px; border: 1px solid #515151; border-radius: 6px; background: #303030; color: var(--text); text-align: left; cursor: pointer; }
+.run-history-card:hover { background: #383838; }
+.run-history-card:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.run-history-card strong { font-size: 14px; font-weight: 600; }
+.run-history-card small, .run-history-status { font-size: 12px; color: var(--text-muted); }
+.run-history-status--completed { color: var(--success); }
+.run-history-status--failed { color: var(--danger); }
+.run-history-status--stopped, .run-history-status--outcome-unknown { color: var(--warning); }
+.run-history-status--running { color: #a5c8ff; }
+.run-history-message { margin: 0 auto; width: min(380px, 100%); color: var(--text-muted); font-size: 13px; }
+@media (max-width: 760px) { .run-history-header { padding: 14px 16px; } .run-history-canvas { padding: 48px 16px; } }
