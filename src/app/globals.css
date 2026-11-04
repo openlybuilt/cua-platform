@@ -58,3 +58,6 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
   .workspace-account { margin: 0; padding: 0; }
   .workspace-content { padding: 36px 20px; }
 }
+
+.account-actions { display: flex; justify-content: flex-end; gap: 8px; }
+.account-error { color: var(--danger); font-size: 13px; }

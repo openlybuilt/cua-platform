@@ -1,6 +1,6 @@
 "use client";
 
-import { UserButton } from "@clerk/nextjs";
+import { AccountMenu } from "./account-menu";
 import { Clock3, LayoutGrid, Settings } from "lucide-react";
 
 export function WorkspaceShell() {
@@ -12,7 +12,7 @@ export function WorkspaceShell() {
         <button type="button" className="workspace-nav-item" disabled><Clock3 size={17} aria-hidden="true" />Run history</button>
         <button type="button" className="workspace-nav-item" disabled><Settings size={17} aria-hidden="true" />Settings</button>
       </nav>
-      <div className="workspace-account"><UserButton /></div>
+      <div className="workspace-account"><AccountMenu /></div>
     </aside>
     <main className="workspace-content"><h1>Workflows</h1></main>
   </div>;

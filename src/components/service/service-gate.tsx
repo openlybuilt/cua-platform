@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { Loading } from "@/components/ui/loading";
 
 type Availability = "checking" | "available" | "unavailable";
+const ServiceAvailability = createContext(false);
+export function useServiceAvailable() { return useContext(ServiceAvailability); }
 
 export function ServiceGate({ children }: { children: ReactNode }) {
   const [availability, setAvailability] = useState<Availability>("checking");
@@ -48,7 +50,7 @@ export function ServiceGate({ children }: { children: ReactNode }) {
   }, []);
 
   return <>
-    {hasConnected && <div hidden={availability !== "available"}>{children}</div>}
+    {hasConnected && <ServiceAvailability.Provider value={availability === "available"}><div hidden={availability !== "available"}>{children}</div></ServiceAvailability.Provider>}
     {availability !== "available" && <main className="unavailable" aria-live="polite">
       {availability === "checking" ? <Loading label="Checking services" /> : <div><h1>Some services are currently unavailable.</h1><p>We’ll reconnect automatically when they’re back.</p></div>}
     </main>}

@@ -8,18 +8,19 @@ type DialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   title: string;
-  description: string;
+  description?: string;
+  compact?: boolean;
   children: ReactNode;
 };
 
-export function Dialog({ open, onOpenChange, title, description, children }: DialogProps) {
+export function Dialog({ open, onOpenChange, title, description, compact = false, children }: DialogProps) {
   return (
     <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
       <DialogPrimitive.Portal>
         <DialogPrimitive.Overlay className="dialog-overlay" />
-        <DialogPrimitive.Content className="dialog-content">
+        <DialogPrimitive.Content className={`dialog-content${compact ? " dialog-content--compact" : ""}`} {...(!description ? { "aria-describedby": undefined } : {})}>
           <div className="dialog-heading">
-            <div><DialogPrimitive.Title className="dialog-title">{title}</DialogPrimitive.Title><DialogPrimitive.Description className="dialog-description">{description}</DialogPrimitive.Description></div>
+            <div><DialogPrimitive.Title className="dialog-title">{title}</DialogPrimitive.Title>{description && <DialogPrimitive.Description className="dialog-description">{description}</DialogPrimitive.Description>}</div>
             <DialogPrimitive.Close className="dialog-close" aria-label="Close"><X size={18} aria-hidden="true" /></DialogPrimitive.Close>
           </div>
           {children}
