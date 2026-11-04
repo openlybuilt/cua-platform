@@ -3,16 +3,10 @@
 import { useEffect, useRef, useState, type Ref } from "react";
 import { Plus } from "lucide-react";
 import { request, type Run, type Workflow } from "@/lib/workflows/contracts";
+import { statusLabel, statusTone } from "@/components/runs/run-status";
 
 function date(value?: string) {
   return value && !Number.isNaN(Date.parse(value)) ? new Date(value).toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }) : "—";
-}
-function status(value: string) {
-  if (value === "failed") return "Failed";
-  if (value === "completed") return "Completed";
-  if (value === "outcome_unknown") return "Outcome unknown";
-  if (["cancelled", "stopped", "interrupted"].includes(value)) return "Stopped";
-  return "Running";
 }
 function result(run: Run) {
   const value = run.result;
@@ -44,7 +38,7 @@ export function WorkflowHome({ active, onCreate, onOpen, onOpenRun, createButton
     {loading ? <p className="home-message">Loading workspace…</p> : error ? <p role="alert" className="home-message">{error} <button type="button" className="home-link" onClick={() => setAttempt((value) => value + 1)}>Try again</button></p> : <>
       <section className="home-section"><div className="home-section-heading"><h2>Recent runs</h2></div>
         <div className="home-table-wrap"><table className="home-table"><thead><tr><th>Workflow</th><th>Status</th><th>Result</th><th>When</th></tr></thead><tbody>
-          {runs.slice(0, 3).map((run) => <tr key={run.id}><td><button type="button" className="home-workflow" onClick={() => onOpenRun(run)}>{run.workflowName || "Workflow"}</button></td><td><span className={`home-status home-status--${status(run.status).toLowerCase().replaceAll(" ", "-")}`}><i aria-hidden="true" />{status(run.status)}</span></td><td>{result(run)}</td><td>{date(run.createdAt)}</td></tr>)}
+          {runs.slice(0, 3).map((run) => <tr key={run.id}><td><button type="button" className="home-workflow" onClick={() => onOpenRun(run)}>{run.workflowName || "Workflow"}</button></td><td><span className={`home-status run-status--${statusTone(run.status)}`}><i className={`run-status-dot--${statusTone(run.status)}`} aria-hidden="true" />{statusLabel(run.status)}</span></td><td>{result(run)}</td><td>{date(run.createdAt)}</td></tr>)}
           {!runs.length && <tr><td colSpan={4}>Your runs will appear here.</td></tr>}
         </tbody></table></div>
       </section>
