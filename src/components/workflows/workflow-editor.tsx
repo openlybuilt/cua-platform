@@ -11,7 +11,7 @@ import type { Definition, Step, Workflow } from "@/lib/workflows/contracts";
 import { StepEditor, stepChoices, stepSummary } from "./step-editor";
 import { useWorkflowDraft } from "./use-workflow-draft";
 
-type Panel = { key: number; index?: number; kind?: Step["type"] };
+type Panel = { key: number; index?: number; insertAt?: number; kind?: Step["type"] };
 function inputNames(steps: Step[]) {
   return [...new Set([...JSON.stringify(steps).matchAll(/\{\{([A-Za-z][A-Za-z0-9_]{0,49})\}\}/g)].map((match) => match[1]!))];
 }
@@ -50,15 +50,15 @@ export function WorkflowEditor({ workflow, windowsAvailable, onBack }: { workflo
       return { ...current, steps, inputs: [...new Set([...explicitInputs, ...inputNames(steps)])] };
     });
   }
-  function openPanel(index?: number, kind?: Step["type"]) {
+  function openPanel(index?: number, kind?: Step["type"], insertAt?: number) {
     slot.current = index ?? null;
-    setPanel({ key: ++panelKey.current, index, kind });
+    setPanel({ key: ++panelKey.current, index, insertAt, kind });
   }
   function changeStep(step: Step) {
     const steps = [...save.draft.steps];
     if (slot.current === null) {
       if (steps.length >= 30) return;
-      slot.current = panel?.index ?? steps.length;
+      slot.current = panel?.insertAt ?? steps.length;
       steps.splice(slot.current, 0, step);
     } else if (slot.current >= 0 && slot.current < steps.length) steps[slot.current] = step;
     else return;
@@ -75,7 +75,7 @@ export function WorkflowEditor({ workflow, windowsAvailable, onBack }: { workflo
   function changeTarget(value: string) {
     const next = value as "browser" | "windows";
     const incompatible = save.draft.steps.some((step) => step.type === "scroll" && (next === "browser" ? "wheelTicks" in step : "pixels" in step));
-    if (incompatible) { setDetailsError("Remove or update incompatible scroll steps before changing the VM type."); return; }
+    if (incompatible) { setDetailsError("Remove incompatible scroll steps before changing the VM type."); return; }
     setDetailsError("");
     save.update((current) => ({ ...current, executionTarget: next }));
   }
@@ -102,6 +102,7 @@ export function WorkflowEditor({ workflow, windowsAvailable, onBack }: { workflo
         <div className="editor-add"><Dropdown label="Add step" disabled={save.draft.steps.length >= 30} items={stepChoices.map((choice) => ({ label: choice.title, onSelect: () => openPanel(undefined, choice.type) }))} /></div>
         <div className="editor-chain"><span className="editor-end">Start</span><div className="editor-line" />
           {save.draft.steps.map((step, index) => <div className="editor-chain-item" key={index} draggable onDragStart={(event) => { event.dataTransfer.setData("application/x-openly-step", String(index)); event.dataTransfer.effectAllowed = "move"; }} onDragOver={(event) => { if (event.dataTransfer.types.includes("application/x-openly-step")) event.preventDefault(); }} onDrop={(event) => { if (!event.dataTransfer.types.includes("application/x-openly-step")) return; event.preventDefault(); const from = Number(event.dataTransfer.getData("application/x-openly-step")); if (Number.isInteger(from) && from >= 0 && from < save.draft.steps.length && from !== index) moveStep(from, index); }}>
+            <button type="button" className="editor-insert" aria-label={`Insert step before step ${index + 1}`} disabled={save.draft.steps.length >= 30} onClick={() => openPanel(undefined, undefined, index)}>+</button>
             <div className="editor-node"><button type="button" className="editor-node-main" onClick={() => openPanel(index)}><span className="editor-node-icon">{stepChoices.find((choice) => choice.type === step.type)?.icon}</span><span><strong>{stepChoices.find((choice) => choice.type === step.type)?.title}</strong><small>{stepSummary(step)}</small></span></button><button type="button" className="editor-remove" aria-label={`Remove step ${index + 1}`} onClick={() => { setPanel(undefined); replaceSteps(save.draft.steps.filter((_, i) => i !== index)); }}>×</button></div>
             <div className="editor-line" />
           </div>)}
