@@ -1,7 +1,6 @@
 "use client";
 
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
-import { Loading } from "@/components/ui/loading";
 
 type Availability = "checking" | "available" | "unavailable";
 const ServiceAvailability = createContext(false);
@@ -12,7 +11,6 @@ export function useExecutionTargets() { return useContext(ExecutionTargets); }
 
 export function ServiceGate({ children }: { children: ReactNode }) {
   const [availability, setAvailability] = useState<Availability>("checking");
-  const [hasConnected, setHasConnected] = useState(false);
   const [targets, setTargets] = useState<ExecutionTarget[]>([]);
   const checking = useRef(false);
 
@@ -34,7 +32,6 @@ export function ServiceGate({ children }: { children: ReactNode }) {
         }
         const next = "executionTargets" in data && Array.isArray(data.executionTargets) ? data.executionTargets.filter((item): item is ExecutionTarget => item === "browser" || item === "windows") : [];
         setTargets((current) => current.length === next.length && current.every((value, index) => value === next[index]) ? current : next);
-        setHasConnected(true);
         setAvailability("available");
       } catch {
         if (!controller.signal.aborted) setAvailability("unavailable");
@@ -59,9 +56,7 @@ export function ServiceGate({ children }: { children: ReactNode }) {
   }, []);
 
   return <>
-    {hasConnected && <ServiceAvailability.Provider value={availability === "available"}><ExecutionTargets.Provider value={targets}><div hidden={availability !== "available"}>{children}</div></ExecutionTargets.Provider></ServiceAvailability.Provider>}
-    {availability !== "available" && <main className="unavailable" aria-live="polite">
-      {availability === "checking" ? <Loading label="Checking services" /> : <div><h1>Some services are currently unavailable.</h1><p>We’ll reconnect automatically when they’re back.</p></div>}
-    </main>}
+    <ServiceAvailability.Provider value={availability !== "unavailable"}><ExecutionTargets.Provider value={targets}><div hidden={availability === "unavailable"}>{children}</div></ExecutionTargets.Provider></ServiceAvailability.Provider>
+    {availability === "unavailable" && <main className="unavailable" aria-live="polite"><div><h1>Some services are currently unavailable.</h1><p>We’ll reconnect automatically when they’re back.</p></div></main>}
   </>;
 }
