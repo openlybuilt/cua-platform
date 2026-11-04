@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { ChevronDown } from "lucide-react";
 import { request, type Run, type Workflow } from "@/lib/workflows/contracts";
 import { RunLoadingState } from "./run-loading-state";
 import { stepChoices, stepSummary } from "@/components/workflows/step-editor";
@@ -57,7 +58,7 @@ export function RunView({ initial, onBack }: { initial: Run; onBack: () => void 
       <aside className="run-side">
         <h2>{terminal.has(run.status) ? "VM screen" : "Live VM"}</h2>
         {!terminal.has(run.status) ? <>{run.liveViewUrl ? <iframe title="Live VM" src={run.liveViewUrl} referrerPolicy="no-referrer" /> : <p>Connecting to the VM…</p>}<button className="button" type="button" disabled={busy || run.status === "cancelling"} onClick={() => void stop()}>Stop run</button></> : run.recordingStatus === "saved" ? <video controls preload="metadata" src={`/api/runs/${run.id}/recording`} /> : <p>{run.recordingStatus === "pending" ? "Saving recording…" : run.recordingStatus === "failed" ? "The recording could not be saved." : "No recording available."}</p>}
-        <details><summary>Logs</summary>{logsError ? <p>Logs are temporarily unavailable.</p> : events === undefined ? <p>Loading logs…</p> : !events.length ? <p>No logs available for this run.</p> : <ol className="run-logs">{[...events].reverse().map((event, index) => <li key={`${event.timestamp}-${index}`}><strong>{event.kind === "step" ? `${event.stepType ?? "Step"}: ${event.status}` : `${event.action ?? event.kind}: ${event.status}`}</strong><time>{new Date(event.timestamp).toLocaleTimeString()}</time><details><summary>View JSON</summary><pre>{JSON.stringify(event, null, 2)}</pre></details></li>)}</ol>}</details>
+        <details className="run-log-panel"><summary className="run-log-heading"><span>Logs</span><ChevronDown size={16} aria-hidden="true" /></summary>{logsError ? <p className="run-log-message">Logs are temporarily unavailable.</p> : events === undefined ? <p className="run-log-message">Loading logs…</p> : !events.length ? <p className="run-log-message">No logs available for this run.</p> : <ol className="run-logs">{[...events].reverse().map((event, index) => <li key={`${event.timestamp}-${index}`}><div className="run-log-row"><strong>{event.kind === "step" ? `${event.stepType ?? "Step"}: ${event.status}` : `${event.action ?? event.kind}: ${event.status}`}</strong><time dateTime={event.timestamp}>{Number.isNaN(Date.parse(event.timestamp)) ? "" : new Date(event.timestamp).toLocaleTimeString()}</time></div><details className="run-log-json"><summary>View JSON <ChevronDown size={12} aria-hidden="true" /></summary><pre>{JSON.stringify(event, null, 2)}</pre></details></li>)}</ol>}</details>
       </aside>
     </main>
   </div>;
