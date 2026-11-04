@@ -38,12 +38,14 @@ export function StepEditor({ initial, initialKind, target, onChange, onClose }: 
   const [amount, setAmount] = useState(initial?.type === "wait" ? String(initial.seconds) : initial?.type === "scroll" ? String("pixels" in initial ? initial.pixels : initial.wheelTicks) : "");
   const [direction, setDirection] = useState<"up" | "down" | "left" | "right">(initial?.type === "scroll" ? initial.direction : "down");
   const [error, setError] = useState("");
+  const [touched, setTouched] = useState(false);
   const saved = useRef(Boolean(initial));
   const legacyText = useRef(initial?.type === "type" && !initial.target);
   const callback = useRef(onChange); callback.current = onChange;
   const coordinate = initial?.type === "click" && "x" in initial ? initial : undefined;
   useEffect(() => {
     if (!kind) return;
+    if (initial && !touched) return;
     try {
       let step: Step;
       if (kind === "navigate") {
@@ -73,19 +75,19 @@ export function StepEditor({ initial, initialKind, target, onChange, onClose }: 
       }
       setError(""); callback.current(step); saved.current = true;
     } catch (problem) { setError(saved.current ? problem instanceof Error ? problem.message : "Check this step." : ""); }
-  }, [kind, value, field, region, amount, direction, target, coordinate]);
+  }, [kind, value, field, region, amount, direction, target, coordinate, initial, touched]);
 
   return <section className="step-editor" aria-label="Step settings">
     <div className="step-editor-heading"><div><h2>{kind ? stepChoices.find((choice) => choice.type === kind)?.title : "Add a step"}</h2><p>{kind ? "Configure what happens in this step." : "Choose what this step should do."}</p></div><button type="button" className="step-close" aria-label="Close step settings" onClick={onClose}>×</button></div>
     {!kind ? <div className="step-options">{stepChoices.map((choice) => <button type="button" key={choice.type} onClick={() => setKind(choice.type)}><span>{choice.icon}</span>{choice.title}</button>)}</div> : <div className="step-fields">
       {(kind === "wait" || kind === "scroll") ? <>
-        {kind === "scroll" && <label>Direction<Select label="Direction" value={direction} onChange={(next) => setDirection(next as typeof direction)} options={(target === "windows" ? ["down", "up"] : ["down", "up", "left", "right"]).map((item) => ({ value: item, label: item[0]!.toUpperCase() + item.slice(1) }))} /></label>}
-        <label>{kind === "wait" ? "Wait time (seconds)" : target === "windows" ? "Distance (wheel ticks)" : "Distance (pixels)"}<input type="number" min={kind === "wait" ? "0.1" : "1"} max={kind === "wait" ? "600" : target === "windows" ? "100" : "100000"} step={kind === "wait" ? "0.1" : "1"} value={amount} onChange={(event) => setAmount(event.target.value)} /></label>
+        {kind === "scroll" && <label>Direction<Select label="Direction" value={direction} onChange={(next) => { setTouched(true); setDirection(next as typeof direction); }} options={(target === "windows" ? ["down", "up"] : ["down", "up", "left", "right"]).map((item) => ({ value: item, label: item[0]!.toUpperCase() + item.slice(1) }))} /></label>}
+        <label>{kind === "wait" ? "Wait time (seconds)" : target === "windows" ? "Distance (wheel ticks)" : "Distance (pixels)"}<input type="number" min={kind === "wait" ? "0.1" : "1"} max={kind === "wait" ? "600" : target === "windows" ? "100" : "100000"} step={kind === "wait" ? "0.1" : "1"} value={amount} onChange={(event) => { setTouched(true); setAmount(event.target.value); }} /></label>
       </> : <label>{kind === "navigate" ? "Website URL" : kind === "ai" ? "Instructions" : kind === "type" ? "Text to enter" : kind === "click" ? "What should the AI click?" : "Keys to press"}
-        {(kind === "ai" || kind === "click") ? <textarea value={value} onChange={(event) => setValue(event.target.value)} placeholder={kind === "click" ? "e.g. The Sign in button" : "Describe what the AI should do"} /> : <input value={value} onChange={(event) => setValue(event.target.value)} placeholder={kind === "navigate" ? "https://example.com" : kind === "press_keys" ? "Ctrl+l, Return" : "Text to enter"} />}
+        {(kind === "ai" || kind === "click") ? <textarea value={value} onChange={(event) => { setTouched(true); setValue(event.target.value); }} placeholder={kind === "click" ? "e.g. The Sign in button" : "Describe what the AI should do"} /> : <input value={value} onChange={(event) => { setTouched(true); setValue(event.target.value); }} placeholder={kind === "navigate" ? "https://example.com" : kind === "press_keys" ? "Ctrl+l, Return" : "Text to enter"} />}
       </label>}
       {coordinate && kind === "click" && !value && <p className="step-hint">Existing coordinate click: {coordinate.x}, {coordinate.y}.</p>}
-      {kind === "type" && <><label>Where should the text go?<input value={field} onChange={(event) => setField(event.target.value)} placeholder="e.g. Email address field" /></label><label>Location on the page<Select label="Location on the page" value={region} onChange={setRegion} options={[{ value: "", label: "No location specified" }, ...(region && !positions.includes(region) ? [{ value: region, label: region }] : []), ...positions.map((item) => ({ value: item, label: item }))]} /></label></>}
+      {kind === "type" && <><label>Where should the text go?<input value={field} onChange={(event) => { setTouched(true); setField(event.target.value); }} placeholder="e.g. Email address field" /></label><label>Location on the page<Select label="Location on the page" value={region} onChange={(next) => { setTouched(true); setRegion(next); }} options={[{ value: "", label: "No location specified" }, ...(region && !positions.includes(region) ? [{ value: region, label: region }] : []), ...positions.map((item) => ({ value: item, label: item }))]} /></label></>}
       {["navigate", "type", "ai", "click"].includes(kind) && <p className="step-hint">To use a saved value, enter {"{{input_name}}"}.</p>}
       {kind === "press_keys" && <p className="step-hint">Use + for keys together, like Ctrl+Shift+Tab. Separate key presses with commas, like Ctrl+l, Return.</p>}
       {error && <p className="step-error" role="alert">{error}</p>}
