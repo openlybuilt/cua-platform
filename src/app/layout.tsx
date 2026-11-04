@@ -5,6 +5,7 @@ import "@fontsource-variable/manrope";
 import "./globals.css";
 import "./components.css";
 import "./workflows.css";
+import "./scheduling.css";
 
 export const metadata: Metadata = { title: "Openly" };
 
