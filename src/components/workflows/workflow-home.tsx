@@ -19,7 +19,7 @@ function result(run: Run) {
   return value && typeof value === "object" && "message" in value && typeof value.message === "string" ? value.message : "—";
 }
 
-export function WorkflowHome({ onCreate, onOpen }: { onCreate: () => void; onOpen: (workflow: Workflow) => void }) {
+export function WorkflowHome({ onCreate, onOpen, onOpenRun }: { onCreate: () => void; onOpen: (workflow: Workflow) => void; onOpenRun: (run: Run) => void }) {
   const [workflows, setWorkflows] = useState<Workflow[]>([]);
   const [runs, setRuns] = useState<Run[]>([]);
   const [loading, setLoading] = useState(true);
@@ -40,7 +40,7 @@ export function WorkflowHome({ onCreate, onOpen }: { onCreate: () => void; onOpe
     {loading ? <p className="home-message">Loading workspace…</p> : error ? <p role="alert" className="home-message">{error} <button type="button" className="home-link" onClick={() => setAttempt((value) => value + 1)}>Try again</button></p> : <>
       <section className="home-section"><div className="home-section-heading"><h2>Recent runs</h2></div>
         <div className="home-table-wrap"><table className="home-table"><thead><tr><th>Workflow</th><th>Status</th><th>Result</th><th>When</th></tr></thead><tbody>
-          {runs.slice(0, 3).map((run) => <tr key={run.id}><td>{run.workflowName || "Workflow"}</td><td><span className={`home-status home-status--${status(run.status).toLowerCase().replaceAll(" ", "-")}`}><i aria-hidden="true" />{status(run.status)}</span></td><td>{result(run)}</td><td>{date(run.createdAt)}</td></tr>)}
+          {runs.slice(0, 3).map((run) => <tr key={run.id}><td><button type="button" className="home-workflow" onClick={() => onOpenRun(run)}>{run.workflowName || "Workflow"}</button></td><td><span className={`home-status home-status--${status(run.status).toLowerCase().replaceAll(" ", "-")}`}><i aria-hidden="true" />{status(run.status)}</span></td><td>{result(run)}</td><td>{date(run.createdAt)}</td></tr>)}
           {!runs.length && <tr><td colSpan={4}>Your runs will appear here.</td></tr>}
         </tbody></table></div>
       </section>
