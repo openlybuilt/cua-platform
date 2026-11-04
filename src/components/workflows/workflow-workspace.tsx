@@ -21,5 +21,9 @@ export function WorkflowWorkspace() {
   if (screen.kind === "create") return <WorkflowCreate targets={targets} onCreated={(workflow) => setScreen({ kind: "editor", workflow })} onBack={() => setScreen({ kind: "home" })} />;
   if (screen.kind === "run") return <RunView initial={screen.run} onBack={() => setScreen({ kind: "home" })} />;
   if (screen.kind === "editor") return <WorkflowEditor key={screen.workflow.id} workflow={screen.workflow} onRunStarted={(run) => setScreen({ kind: "run", run })} windowsAvailable={targets.includes("windows")} onBack={() => setScreen({ kind: "home" })} />;
-  return <WorkspaceShell view={view} onViewChange={setView}>{view === "history" ? <RunHistory onOpen={(run) => setScreen({ kind: "run", run })} /> : view === "settings" ? <section className="timezone-settings"><h1>Settings</h1><h2>Time zone</h2><TimezoneSettings /><Recordings /><Placeholders /></section> : <WorkflowHome onOpenRun={(run) => setScreen({ kind: "run", run })} onCreate={() => setScreen({ kind: "create" })} onOpen={(workflow) => setScreen({ kind: "editor", workflow })} />}</WorkspaceShell>;
+  return <WorkspaceShell view={view} onViewChange={setView}>
+    <div hidden={view !== "workflows"}><WorkflowHome active={view === "workflows"} onOpenRun={(run) => setScreen({ kind: "run", run })} onCreate={() => setScreen({ kind: "create" })} onOpen={(workflow) => setScreen({ kind: "editor", workflow })} /></div>
+    <div hidden={view !== "history"}><RunHistory active={view === "history"} onOpen={(run) => setScreen({ kind: "run", run })} /></div>
+    {view === "settings" && <section className="timezone-settings"><h1>Settings</h1><h2>Time zone</h2><TimezoneSettings /><Recordings /><Placeholders /></section>}
+  </WorkspaceShell>;
 }

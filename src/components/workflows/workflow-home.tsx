@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Plus } from "lucide-react";
 import { request, type Run, type Workflow } from "@/lib/workflows/contracts";
 
@@ -19,22 +19,26 @@ function result(run: Run) {
   return value && typeof value === "object" && "message" in value && typeof value.message === "string" ? value.message : "—";
 }
 
-export function WorkflowHome({ onCreate, onOpen, onOpenRun }: { onCreate: () => void; onOpen: (workflow: Workflow) => void; onOpenRun: (run: Run) => void }) {
+export function WorkflowHome({ active, onCreate, onOpen, onOpenRun }: { active: boolean; onCreate: () => void; onOpen: (workflow: Workflow) => void; onOpenRun: (run: Run) => void }) {
   const [workflows, setWorkflows] = useState<Workflow[]>([]);
   const [runs, setRuns] = useState<Run[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [attempt, setAttempt] = useState(0);
+  const loaded = useRef(false);
   useEffect(() => {
-    let active = true;
-    setLoading(true); setError("");
+    if (!active) return;
+    let current = true;
+    if (!loaded.current) setLoading(true);
+    setError("");
     Promise.all([request<Workflow[]>("workflows"), request<Run[]>("runs")]).then(([workflows, runs]) => {
-      if (!active) return;
+      if (!current) return;
+      loaded.current = true;
       setWorkflows(workflows);
       setRuns([...runs].sort((a, b) => Date.parse(b.createdAt ?? "") - Date.parse(a.createdAt ?? "")));
-    }).catch((problem: unknown) => { if (active) setError(problem instanceof Error ? problem.message : "Could not load workflows."); }).finally(() => { if (active) setLoading(false); });
-    return () => { active = false; };
-  }, [attempt]);
+    }).catch((problem: unknown) => { if (current) setError(problem instanceof Error ? problem.message : "Could not load workflows."); }).finally(() => { if (current) setLoading(false); });
+    return () => { current = false; };
+  }, [active, attempt]);
   return <>
     <header className="home-heading"><h1>Workflows</h1><button type="button" className="home-create" onClick={onCreate}><Plus size={17} aria-hidden="true" />Create workflow</button></header>
     {loading ? <p className="home-message">Loading workspace…</p> : error ? <p role="alert" className="home-message">{error} <button type="button" className="home-link" onClick={() => setAttempt((value) => value + 1)}>Try again</button></p> : <>

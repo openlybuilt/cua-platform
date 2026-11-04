@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { request, type Run } from "@/lib/workflows/contracts";
 import { statusLabel, statusTone } from "./run-status";
 
@@ -9,16 +9,19 @@ function timestamp(value?: string) {
 function result(run: Run) {
   return run.result && typeof run.result === "object" && "message" in run.result && typeof run.result.message === "string" ? run.result.message : "—";
 }
-export function RunHistory({ onOpen }: { onOpen: (run: Run) => void }) {
+export function RunHistory({ active, onOpen }: { active: boolean; onOpen: (run: Run) => void }) {
   const [runs, setRuns] = useState<Run[]>();
   const [error, setError] = useState("");
+  const loaded = useRef(false);
   useEffect(() => {
-    let active = true;
+    if (!active && loaded.current) return;
+    let current = true;
+    setError("");
     request<Run[]>("runs")
-      .then((value) => { if (active) setRuns([...value].sort((a, b) => Date.parse(b.createdAt ?? "") - Date.parse(a.createdAt ?? ""))); })
-      .catch(() => { if (active) setError("Could not load run history."); });
-    return () => { active = false; };
-  }, []);
+      .then((value) => { if (current) { loaded.current = true; setRuns([...value].sort((a, b) => Date.parse(b.createdAt ?? "") - Date.parse(a.createdAt ?? ""))); } })
+      .catch(() => { if (current) setError("Could not load run history."); });
+    return () => { current = false; };
+  }, [active]);
   return <>
     <header className="home-heading"><h1>Run history</h1></header>
     <section className="home-section">
