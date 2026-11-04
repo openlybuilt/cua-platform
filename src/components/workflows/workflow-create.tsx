@@ -19,6 +19,11 @@ export function WorkflowCreate({ targets, onCreated, onBack }: { targets: ("brow
   const submitting = useRef(false);
   const available = useServiceAvailable();
   useEffect(() => { if (targets.length && !targets.includes(target)) setTarget(targets[0]!); }, [targets, target]);
+  useEffect(() => {
+    const warn = (event: BeforeUnloadEvent) => { if (name || description || busy) { event.preventDefault(); event.returnValue = ""; } };
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [name, description, busy]);
   async function create(event: React.FormEvent) {
     event.preventDefault();
     if (submitting.current || uncertain || !name.trim() || !targets.includes(target)) return;
