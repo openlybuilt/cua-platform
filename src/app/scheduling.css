@@ -92,20 +92,6 @@
 }
 
 
-.run-history-page { min-height: 100dvh; background: #000; }
-.run-history-header { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; min-height: 76px; padding: 16px 28px; border-bottom: 1px solid #383838; }
-.run-history-header .editor-back { justify-self: start; }
-.run-history-header h1 { margin: 0; font-size: 20px; font-weight: 300; }
-.run-history-canvas { min-height: calc(100dvh - 76px); padding: 72px 20px; background: #171717 radial-gradient(#333 1px, transparent 1px); background-size: 22px 22px; }
-.run-history-cards { display: grid; gap: 20px; width: min(380px, 100%); margin: 0 auto; }
-.run-history-card { display: grid; gap: 7px; width: 100%; padding: 16px; border: 1px solid #515151; border-radius: 6px; background: #303030; color: var(--text); text-align: left; cursor: pointer; }
-.run-history-card:hover { background: #383838; }
-.run-history-card:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
-.run-history-card strong { font-size: 14px; font-weight: 600; }
-.run-history-card small, .run-history-status { font-size: 12px; color: var(--text-muted); }
-.run-history-message { margin: 0 auto; width: min(380px, 100%); color: var(--text-muted); font-size: 13px; }
-@media (max-width: 760px) { .run-history-header { padding: 14px 16px; } .run-history-canvas { padding: 48px 16px; } }
-
 .run-progress { min-width: 0; }
 .run-canvas { min-height: 600px; overflow: auto; border-radius: var(--radius); background: #171717 radial-gradient(#333 1px, transparent 1px); background-size: 22px 22px; }
 .run-chain { display: flex; flex-direction: column; align-items: center; width: min(380px, calc(100% - 44px)); margin: 0 auto; padding: 55px 0 70px; }
@@ -156,7 +142,13 @@
 .run-log-json pre { max-height: 220px; margin: 8px 0 0; padding: 10px; border-radius: 4px; background: #111; color: var(--text-muted); font-size: 11px; line-height: 1.45; }
 @media (prefers-reduced-motion: reduce) { .run-log-heading svg, .run-log-json summary svg { transition: none; } }
 
-.run-history-status.run-status--success, .run-steps .run-step-status.run-status--success, .run-header .run-status--success, .run-log-row .run-status--success { color: var(--success); }
-.run-history-status.run-status--error, .run-steps .run-step-status.run-status--error, .run-header .run-status--error, .run-log-row .run-status--error { color: var(--danger); }
-.run-history-status.run-status--warning, .run-steps .run-step-status.run-status--warning, .run-header .run-status--warning, .run-log-row .run-status--warning { color: var(--warning); }
-.run-history-status.run-status--active, .run-steps .run-step-status.run-status--active, .run-header .run-status--active, .run-log-row .run-status--active { color: #a5c8ff; }
+.home-status.run-status--success, .run-steps .run-step-status.run-status--success, .run-header .run-status--success, .run-log-row .run-status--success { color: var(--success); }
+.home-status.run-status--error, .run-steps .run-step-status.run-status--error, .run-header .run-status--error, .run-log-row .run-status--error { color: var(--danger); }
+.home-status.run-status--warning, .run-steps .run-step-status.run-status--warning, .run-header .run-status--warning, .run-log-row .run-status--warning { color: var(--warning); }
+.home-status.run-status--active, .run-steps .run-step-status.run-status--active, .run-header .run-status--active, .run-log-row .run-status--active { color: #a5c8ff; }
+
+.home-status .run-status-dot--success { background: var(--success); }
+.home-status .run-status-dot--error { background: var(--danger); }
+.home-status .run-status-dot--warning { background: var(--warning); }
+.home-status .run-status-dot--active { background: #a5c8ff; }
+.home-status .run-status-dot--neutral { background: var(--text-muted); }

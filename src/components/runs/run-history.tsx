@@ -1,34 +1,32 @@
 "use client";
 import { useEffect, useState } from "react";
-import { ArrowLeft } from "lucide-react";
 import { request, type Run } from "@/lib/workflows/contracts";
 import { statusLabel, statusTone } from "./run-status";
 
 function timestamp(value?: string) {
-  return value && !Number.isNaN(Date.parse(value)) ? new Date(value).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" }) : "Unknown time";
+  return value && !Number.isNaN(Date.parse(value)) ? new Date(value).toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }) : "—";
 }
-export function RunHistory({ onOpen, onBack }: { onOpen: (run: Run) => void; onBack: () => void }) {
+function result(run: Run) {
+  return run.result && typeof run.result === "object" && "message" in run.result && typeof run.result.message === "string" ? run.result.message : "—";
+}
+export function RunHistory({ onOpen }: { onOpen: (run: Run) => void }) {
   const [runs, setRuns] = useState<Run[]>();
   const [error, setError] = useState("");
   useEffect(() => {
     let active = true;
-    setRuns(undefined); setError("");
     request<Run[]>("runs")
-      .then((value) => { if (active) setRuns(value); })
+      .then((value) => { if (active) setRuns([...value].sort((a, b) => Date.parse(b.createdAt ?? "") - Date.parse(a.createdAt ?? ""))); })
       .catch(() => { if (active) setError("Could not load run history."); });
     return () => { active = false; };
   }, []);
-  return <main className="run-history-page">
-    <header className="run-history-header">
-      <button className="editor-back" type="button" aria-label="Back to workflows" onClick={onBack}><ArrowLeft size={20} aria-hidden="true" /></button>
-      <h1>Run history</h1><span aria-hidden="true" />
-    </header>
-    <section className="run-history-canvas" aria-label="Runs">
-      {error ? <p className="run-history-message" role="alert">{error}</p> : !runs ? <p className="run-history-message">Loading runs…</p> : !runs.length ? <p className="run-history-message">Your runs will appear here.</p> : <div className="run-history-cards">{runs.map((run) => <button className="run-history-card" type="button" key={run.id} onClick={() => onOpen(run)}>
-        <strong>{timestamp(run.createdAt)}</strong>
-        <span className={`run-history-status run-status--${statusTone(run.status)}`}>Status: {statusLabel(run.status).toLowerCase()}</span>
-        <small>{run.workflowName || "Workflow"}</small>
-      </button>)}</div>}
+  return <>
+    <header className="home-heading"><h1>Run history</h1></header>
+    <section className="home-section">
+      <div className="home-section-heading"><h2>All runs</h2></div>
+      {error ? <p className="home-message" role="alert">{error}</p> : !runs ? <p className="home-message">Loading runs…</p> : <div className="home-table-wrap"><table className="home-table"><thead><tr><th>Workflow</th><th>Status</th><th>Result</th><th>When</th></tr></thead><tbody>
+        {runs.map((run) => <tr key={run.id}><td><button type="button" className="home-workflow" onClick={() => onOpen(run)}>{run.workflowName || "Workflow"}</button></td><td><span className={`home-status run-status--${statusTone(run.status)}`}><i className={`run-status-dot--${statusTone(run.status)}`} aria-hidden="true" />{statusLabel(run.status)}</span></td><td>{result(run)}</td><td>{timestamp(run.createdAt)}</td></tr>)}
+        {!runs.length && <tr><td colSpan={4}>Your runs will appear here.</td></tr>}
+      </tbody></table></div>}
     </section>
-  </main>;
+  </>;
 }
