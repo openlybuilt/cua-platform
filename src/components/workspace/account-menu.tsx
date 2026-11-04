@@ -1,10 +1,10 @@
 "use client";
 
 import { useClerk } from "@clerk/nextjs";
+import { LogOut } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
-import { Dropdown } from "@/components/ui/dropdown";
 import { useServiceAvailable } from "@/components/service/service-gate";
 
 export function AccountMenu({ compact = false }: { compact?: boolean }) {
@@ -22,7 +22,7 @@ export function AccountMenu({ compact = false }: { compact?: boolean }) {
   }
   if (!available) return null;
   return <>
-    <Dropdown label={compact ? "⋯" : "Account"} accessibleLabel="Account" items={[{ label: "Sign out", onSelect: () => { setError(false); setOpen(true); } }]} />
+    <Button variant="quiet" className="workspace-signout" aria-label="Sign out" onClick={() => { setError(false); setOpen(true); }}><LogOut size={17} aria-hidden="true" />{!compact && <span>Sign out</span>}</Button>
     <Dialog open={open} onOpenChange={(next) => { if (!busy) setOpen(next); }} title="Sign out?" compact>
       {error && <p className="account-error" role="alert">Could not sign out. Please try again.</p>}
       <div className="account-actions"><Button variant="quiet" disabled={busy} onClick={() => setOpen(false)}>Cancel</Button><Button disabled={busy} onClick={() => void confirmSignOut()}>Sign out</Button></div>

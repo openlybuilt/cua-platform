@@ -19,7 +19,11 @@ export async function GET() {
     if (!response.ok) return response.status === 401 ? Response.json({ error: "Sign in required" }, { status: 401, headers: { "cache-control": "no-store" } }) : unavailable();
     const data: unknown = await response.json();
     if (!data || typeof data !== "object" || !("status" in data) || data.status !== "available") return unavailable();
-    return Response.json({ status: "available" }, { headers: { "cache-control": "no-store" } });
+    const targets = "executionTargets" in data && Array.isArray(data.executionTargets)
+      ? data.executionTargets.filter((item): item is "browser" | "windows" => item === "browser" || item === "windows")
+      : [];
+    if (!targets.length) return unavailable();
+    return Response.json({ status: "available", executionTargets: targets }, { headers: { "cache-control": "no-store" } });
   } catch {
     return unavailable();
   }

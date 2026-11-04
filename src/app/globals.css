@@ -51,12 +51,13 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .workspace-shell--collapsed .workspace-nav-item { justify-content: center; padding-inline: 0; }
 .workspace-shell--collapsed .workspace-nav-label { display: none; }
 .workspace-shell--collapsed .workspace-account { margin-left: 0; }
-.workspace-shell--collapsed .workspace-account .dropdown-trigger { padding-inline: 4px; gap: 2px; }
+.workspace-shell--collapsed .workspace-signout { justify-content: center; width: 100%; padding-inline: 0; }
 .workspace-sidebar nav { display: grid; gap: 5px; }
 .workspace-nav-item { display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px 14px; border: 0; border-radius: var(--radius); background: transparent; color: var(--text-muted); text-align: left; font-size: 14px; cursor: pointer; }
 .workspace-nav-item--current { color: var(--text); background: var(--surface-raised); }
 .workspace-nav-item:disabled { opacity: .45; cursor: not-allowed; }
 .workspace-account { margin: auto 0 48px 12px; padding-top: 28px; }
+.workspace-signout { justify-content: flex-start; color: var(--text-muted); font-size: 13px; }
 .workspace-content { width: 100%; max-width: 1310px; margin: 0 auto; padding: 66px clamp(28px, 5vw, 76px) 90px; }
 .workspace-content h1 { margin: 0; font-size: 28px; font-weight: 300; }
 @media (max-width: 760px) {

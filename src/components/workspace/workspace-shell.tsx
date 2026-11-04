@@ -2,9 +2,9 @@
 
 import { AccountMenu } from "./account-menu";
 import { Clock3, LayoutGrid, Menu, Settings } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
-export function WorkspaceShell() {
+export function WorkspaceShell({ children }: { children: ReactNode }) {
   const [collapsed, setCollapsed] = useState(false);
   useEffect(() => {
     try { setCollapsed(localStorage.getItem("openly:sidebar-collapsed") === "true"); } catch { /* Storage is optional. */ }
@@ -27,6 +27,6 @@ export function WorkspaceShell() {
       </nav>
       <div className="workspace-account"><AccountMenu compact={collapsed} /></div>
     </aside>
-    <main className="workspace-content"><h1>Workflows</h1></main>
+    <main className="workspace-content">{children}</main>
   </div>;
 }

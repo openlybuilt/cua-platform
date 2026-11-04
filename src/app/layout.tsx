@@ -4,6 +4,7 @@ import { authConfigured } from "@/lib/auth-config";
 import "@fontsource-variable/manrope";
 import "./globals.css";
 import "./components.css";
+import "./workflows.css";
 
 export const metadata: Metadata = { title: "Openly" };
 
