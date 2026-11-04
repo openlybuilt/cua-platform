@@ -44,7 +44,7 @@ export function WorkflowHome({ active, onCreate, onOpen, onOpenRun, createButton
       </section>
       <section className="home-section"><div className="home-section-heading"><h2>All workflows</h2><span>{workflows.length} {workflows.length === 1 ? "workflow" : "workflows"}</span></div>
         <div className="home-table-wrap"><table className="home-table home-workflows"><thead><tr><th>Workflow</th><th>Last activity</th></tr></thead><tbody>
-          {workflows.map((workflow) => { const latest = runs.find((run) => run.workflowId === workflow.id); return <tr key={workflow.id}><td><button type="button" className="home-workflow" onClick={() => onOpen(workflow)}>{workflow.definition.name}</button><span className="home-description">{workflow.definition.description || `${workflow.definition.steps.length} steps`}</span></td><td>{latest ? date(latest.createdAt) : "—"}</td></tr>; })}
+          {workflows.map((workflow) => { const latest = runs.find((run) => run.workflowId === workflow.id); return <tr key={workflow.id}><td><button type="button" className="home-workflow" onClick={() => onOpen(workflow)}>{workflow.definition.name}</button>{workflow.definition.description && <span className="home-description">{workflow.definition.description}</span>}</td><td>{latest ? date(latest.createdAt) : "—"}</td></tr>; })}
           {!workflows.length && <tr><td colSpan={2}>You haven’t created a workflow yet.</td></tr>}
         </tbody></table></div>
       </section>
