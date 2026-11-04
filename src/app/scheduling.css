@@ -103,10 +103,6 @@
 .run-history-card:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
 .run-history-card strong { font-size: 14px; font-weight: 600; }
 .run-history-card small, .run-history-status { font-size: 12px; color: var(--text-muted); }
-.run-history-status--completed { color: var(--success); }
-.run-history-status--failed { color: var(--danger); }
-.run-history-status--stopped, .run-history-status--outcome-unknown { color: var(--warning); }
-.run-history-status--running { color: #a5c8ff; }
 .run-history-message { margin: 0 auto; width: min(380px, 100%); color: var(--text-muted); font-size: 13px; }
 @media (max-width: 760px) { .run-history-header { padding: 14px 16px; } .run-history-canvas { padding: 48px 16px; } }
 
@@ -121,10 +117,6 @@
 .run-steps .run-step-content p { margin: 5px 0 0; font-size: 12px; line-height: 1.5; }
 .run-steps .run-step-content .run-step-error { color: var(--danger); }
 .run-steps .run-step-status { flex: none; float: none; color: var(--text-muted); font-size: 11px; }
-.run-steps .run-step-status--completed { color: var(--success); }
-.run-steps .run-step-status--failed { color: var(--danger); }
-.run-steps .run-step-status--running { color: #a5c8ff; }
-.run-steps .run-step-status--cancelled, .run-steps .run-step-status--interrupted { color: var(--warning); }
 .run-canvas-message { margin: 28px; color: var(--text-muted); font-size: 13px; }
 @media (max-width: 760px) { .run-canvas { min-height: 440px; } }
 
@@ -163,3 +155,8 @@
 .run-log-json summary:hover { color: var(--text); }
 .run-log-json pre { max-height: 220px; margin: 8px 0 0; padding: 10px; border-radius: 4px; background: #111; color: var(--text-muted); font-size: 11px; line-height: 1.45; }
 @media (prefers-reduced-motion: reduce) { .run-log-heading svg, .run-log-json summary svg { transition: none; } }
+
+.run-history-status.run-status--success, .run-steps .run-step-status.run-status--success, .run-header .run-status--success, .run-log-row .run-status--success { color: var(--success); }
+.run-history-status.run-status--error, .run-steps .run-step-status.run-status--error, .run-header .run-status--error, .run-log-row .run-status--error { color: var(--danger); }
+.run-history-status.run-status--warning, .run-steps .run-step-status.run-status--warning, .run-header .run-status--warning, .run-log-row .run-status--warning { color: var(--warning); }
+.run-history-status.run-status--active, .run-steps .run-step-status.run-status--active, .run-header .run-status--active, .run-log-row .run-status--active { color: #a5c8ff; }

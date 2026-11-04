@@ -2,14 +2,8 @@
 import { useEffect, useState } from "react";
 import { ArrowLeft } from "lucide-react";
 import { request, type Run } from "@/lib/workflows/contracts";
+import { statusLabel, statusTone } from "./run-status";
 
-function status(value: string) {
-  if (value === "completed") return { label: "Completed", tone: "completed" };
-  if (value === "failed") return { label: "Failed", tone: "failed" };
-  if (["cancelled", "interrupted", "stopped"].includes(value)) return { label: "Stopped", tone: "stopped" };
-  if (value === "outcome_unknown") return { label: "Outcome unknown", tone: "outcome-unknown" };
-  return { label: "Running", tone: "running" };
-}
 function timestamp(value?: string) {
   return value && !Number.isNaN(Date.parse(value)) ? new Date(value).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" }) : "Unknown time";
 }
@@ -32,7 +26,7 @@ export function RunHistory({ onOpen, onBack }: { onOpen: (run: Run) => void; onB
     <section className="run-history-canvas" aria-label="Runs">
       {error ? <p className="run-history-message" role="alert">{error}</p> : !runs ? <p className="run-history-message">Loading runs…</p> : !runs.length ? <p className="run-history-message">Your runs will appear here.</p> : <div className="run-history-cards">{runs.map((run) => <button className="run-history-card" type="button" key={run.id} onClick={() => onOpen(run)}>
         <strong>{timestamp(run.createdAt)}</strong>
-        <span className={`run-history-status run-history-status--${status(run.status).tone}`}>Status: {status(run.status).label.toLowerCase()}</span>
+        <span className={`run-history-status run-status--${statusTone(run.status)}`}>Status: {statusLabel(run.status).toLowerCase()}</span>
         <small>{run.workflowName || "Workflow"}</small>
       </button>)}</div>}
     </section>

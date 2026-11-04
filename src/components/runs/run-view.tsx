@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { request, type Run, type Workflow } from "@/lib/workflows/contracts";
 import { RunLoadingState } from "./run-loading-state";
+import { statusLabel, statusTone } from "./run-status";
 import { stepChoices, stepSummary } from "@/components/workflows/step-editor";
 
 type Event = { timestamp: string; kind: string; status: string; stepIndex?: number; stepType?: string; action?: string; durationMs?: number; usage?: { inputTokens: number; outputTokens: number } };
@@ -30,7 +31,7 @@ export function RunView({ initial, onBack }: { initial: Run; onBack: () => void 
   const elapsed = seconds === null ? "" : seconds < 60 ? `${seconds}s` : `${Math.floor(seconds / 60)}m ${seconds % 60}s`;
   async function stop() { setBusy(true); try { await request(`runs/${run.id}/cancel`, { body: {} }); } catch { setError("Could not stop the run."); } finally { setBusy(false); } }
   return <div className="run-page">
-    <header className="run-header"><button type="button" onClick={onBack}>← Back</button><h1>{run.workflowName || workflow?.definition.name || "Workflow run"}</h1>{terminal.has(run.status) ? <span>{run.status.replaceAll("_", " ")}</span> : <RunLoadingState status={run.status} elapsed={elapsed} />}</header>
+    <header className="run-header"><button type="button" onClick={onBack}>← Back</button><h1>{run.workflowName || workflow?.definition.name || "Workflow run"}</h1>{terminal.has(run.status) ? <span className={`run-status--${statusTone(run.status)}`}>{statusLabel(run.status)}</span> : <RunLoadingState status={run.status} elapsed={elapsed} />}</header>
     <main className="run-layout">
       <section className="run-progress">
         <h2>Workflow progress</h2>
@@ -46,7 +47,7 @@ export function RunView({ initial, onBack }: { initial: Run; onBack: () => void 
                 <div className="run-step-card">
                   <span className="editor-node-icon" aria-hidden="true">{choice?.icon ?? "•"}</span>
                   <div className="run-step-content"><strong>{choice?.title ?? step.type}</strong><p>{stepSummary(step)}</p>{evidence?.message && <p className="run-step-error">{evidence.message}</p>}</div>
-                  <span className={`run-step-status run-step-status--${state}`}>{state.replaceAll("_", " ")}</span>
+                  <span className={`run-step-status run-status--${statusTone(state)}`}>{statusLabel(state).toLowerCase()}</span>
                 </div>
                 <div className="editor-line" aria-hidden="true" />
               </li>;
@@ -58,7 +59,7 @@ export function RunView({ initial, onBack }: { initial: Run; onBack: () => void 
       <aside className="run-side">
         <h2>{terminal.has(run.status) ? "VM screen" : "Live VM"}</h2>
         {!terminal.has(run.status) ? <>{run.liveViewUrl ? <iframe title="Live VM" src={run.liveViewUrl} referrerPolicy="no-referrer" /> : <p>Connecting to the VM…</p>}<button className="button" type="button" disabled={busy || run.status === "cancelling"} onClick={() => void stop()}>Stop run</button></> : run.recordingStatus === "saved" ? <video controls preload="metadata" src={`/api/runs/${run.id}/recording`} /> : <p>{run.recordingStatus === "pending" ? "Saving recording…" : run.recordingStatus === "failed" ? "The recording could not be saved." : "No recording available."}</p>}
-        <details className="run-log-panel"><summary className="run-log-heading"><span>Logs</span><ChevronDown size={16} aria-hidden="true" /></summary>{logsError ? <p className="run-log-message">Logs are temporarily unavailable.</p> : events === undefined ? <p className="run-log-message">Loading logs…</p> : !events.length ? <p className="run-log-message">No logs available for this run.</p> : <ol className="run-logs">{[...events].reverse().map((event, index) => <li key={`${event.timestamp}-${index}`}><div className="run-log-row"><strong>{event.kind === "step" ? `${event.stepType ?? "Step"}: ${event.status}` : `${event.action ?? event.kind}: ${event.status}`}</strong><time dateTime={event.timestamp}>{Number.isNaN(Date.parse(event.timestamp)) ? "" : new Date(event.timestamp).toLocaleTimeString()}</time></div><details className="run-log-json"><summary>View JSON <ChevronDown size={12} aria-hidden="true" /></summary><pre>{JSON.stringify(event, null, 2)}</pre></details></li>)}</ol>}</details>
+        <details className="run-log-panel"><summary className="run-log-heading"><span>Logs</span><ChevronDown size={16} aria-hidden="true" /></summary>{logsError ? <p className="run-log-message">Logs are temporarily unavailable.</p> : events === undefined ? <p className="run-log-message">Loading logs…</p> : !events.length ? <p className="run-log-message">No logs available for this run.</p> : <ol className="run-logs">{[...events].reverse().map((event, index) => <li key={`${event.timestamp}-${index}`}><div className="run-log-row"><strong>{event.kind === "step" ? event.stepType ?? "Step" : event.action ?? event.kind}: <span className={`run-status--${statusTone(event.status)}`}>{statusLabel(event.status).toLowerCase()}</span></strong><time dateTime={event.timestamp}>{Number.isNaN(Date.parse(event.timestamp)) ? "" : new Date(event.timestamp).toLocaleTimeString()}</time></div><details className="run-log-json"><summary>View JSON <ChevronDown size={12} aria-hidden="true" /></summary><pre>{JSON.stringify(event, null, 2)}</pre></details></li>)}</ol>}</details>
       </aside>
     </main>
   </div>;
