@@ -1,14 +1,13 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
 import { Select } from "@/components/ui/select";
 import { useServiceAvailable } from "@/components/service/service-gate";
 import { request, RequestError, type Definition, type Workflow } from "@/lib/workflows/contracts";
 
-export function WorkflowCreate({ targets, onCreated, onBack }: { targets: ("browser" | "windows")[]; onCreated: (workflow: Workflow) => void; onBack: () => void }) {
+export function WorkflowCreate({ targets, onCreated, onBack, returnFocus }: { targets: ("browser" | "windows")[]; onCreated: (workflow: Workflow) => void; onBack: () => void; returnFocus: () => boolean }) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [target, setTarget] = useState<"browser" | "windows">(targets.includes("browser") ? "browser" : "windows");
@@ -40,15 +39,16 @@ export function WorkflowCreate({ targets, onCreated, onBack }: { targets: ("brow
     if (busy) return;
     if (!uncertain && (name || description)) setConfirm(true); else onBack();
   }
-  return <div className="workflow-create-page"><header className="workflow-create-header"><button type="button" onClick={back} disabled={busy}><ArrowLeft size={18} aria-hidden="true" /> Back</button></header>
-    <main className="workflow-create"><h1>Create a workflow.</h1><p>Start with the basics. You’ll add the steps on the next screen.</p>
-      <form onSubmit={(event) => void create(event)}><label htmlFor="workflow-name">Workflow name<input id="workflow-name" required maxLength={120} value={name} onChange={(event) => setName(event.target.value)} placeholder="e.g. Check a website" /></label>
+  return <>
+    <Dialog open={available} onOpenChange={(next) => { if (!next) back(); }} returnFocus={returnFocus} title="Create a workflow" description="Start with the basics. You’ll add the steps next.">
+      <form className="workflow-create-form" onSubmit={(event) => void create(event)}>
+        <label htmlFor="workflow-name">Workflow name<input id="workflow-name" autoFocus required maxLength={120} value={name} onChange={(event) => setName(event.target.value)} placeholder="e.g. Check a website" /></label>
         <label htmlFor="workflow-description">Description<textarea id="workflow-description" maxLength={1000} value={description} onChange={(event) => setDescription(event.target.value)} placeholder="What will this workflow do?" /></label>
         <label htmlFor="workflow-vm">VM type<Select id="workflow-vm" label="VM type" value={target} onChange={(value) => setTarget(value as typeof target)} options={[{ value: "browser", label: "Browser VM", disabled: !targets.includes("browser") }, { value: "windows", label: "Computer VM", disabled: !targets.includes("windows") }]} /></label>
         {error && <p className="step-error" role="alert">{error}</p>}
         <Button type="submit" disabled={busy || uncertain || !name.trim() || !targets.includes(target)}>{busy ? "Creating…" : "Continue →"}</Button>
       </form>
-    </main>
+    </Dialog>
     <Dialog open={confirm && available} onOpenChange={setConfirm} title="Discard changes?" description="Your workflow has not been created."><div className="workflow-actions"><Button variant="quiet" onClick={() => setConfirm(false)}>Keep editing</Button><Button onClick={onBack}>Discard changes</Button></div></Dialog>
-  </div>;
+  </>;
 }

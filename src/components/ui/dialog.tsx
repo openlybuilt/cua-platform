@@ -11,14 +11,15 @@ type DialogProps = {
   description?: string;
   compact?: boolean;
   children: ReactNode;
+  returnFocus?: () => boolean;
 };
 
-export function Dialog({ open, onOpenChange, title, description, compact = false, children }: DialogProps) {
+export function Dialog({ open, onOpenChange, title, description, compact = false, children, returnFocus }: DialogProps) {
   return (
     <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
       <DialogPrimitive.Portal>
         <DialogPrimitive.Overlay className="dialog-overlay" />
-        <DialogPrimitive.Content className={`dialog-content${compact ? " dialog-content--compact" : ""}`} {...(!description ? { "aria-describedby": undefined } : {})}>
+        <DialogPrimitive.Content onCloseAutoFocus={(event) => { if (returnFocus?.()) event.preventDefault(); }} className={`dialog-content${compact ? " dialog-content--compact" : ""}`} {...(!description ? { "aria-describedby": undefined } : {})}>
           <div className="dialog-heading">
             <div><DialogPrimitive.Title className="dialog-title">{title}</DialogPrimitive.Title>{description && <DialogPrimitive.Description className="dialog-description">{description}</DialogPrimitive.Description>}</div>
             <DialogPrimitive.Close className="dialog-close" aria-label="Close"><X size={18} aria-hidden="true" /></DialogPrimitive.Close>
