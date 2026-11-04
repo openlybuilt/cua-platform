@@ -90,3 +90,5 @@
   .workspace-nav-item, .workspace-shell--collapsed .workspace-nav-item { width: auto; justify-content: center; gap: 6px; padding: 10px 4px; }
   .workspace-nav-item svg { flex: none; }
 }
+
+.workspace-content .run-history h1 { margin-bottom: 28px; }
