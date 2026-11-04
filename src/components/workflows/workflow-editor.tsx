@@ -40,7 +40,11 @@ export function WorkflowEditor({ workflow, windowsAvailable, onBack }: { workflo
     previous.current = save.status;
   }, [save.status]);
   function replaceSteps(steps: Step[]) {
-    save.update((current) => ({ ...current, steps, inputs: inputNames(steps) }));
+    save.update((current) => {
+      const previouslyReferenced = inputNames(current.steps);
+      const explicitInputs = current.inputs.filter((name) => !previouslyReferenced.includes(name));
+      return { ...current, steps, inputs: [...new Set([...explicitInputs, ...inputNames(steps)])] };
+    });
   }
   function openPanel(index?: number, kind?: Step["type"]) {
     slot.current = index ?? null;

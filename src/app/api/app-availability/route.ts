@@ -22,6 +22,7 @@ export async function GET() {
     const targets = "executionTargets" in data && Array.isArray(data.executionTargets)
       ? data.executionTargets.filter((item): item is "browser" | "windows" => item === "browser" || item === "windows")
       : [];
+    if (!targets.length) return unavailable();
     return Response.json({ status: "available", executionTargets: targets }, { headers: { "cache-control": "no-store" } });
   } catch {
     return unavailable();

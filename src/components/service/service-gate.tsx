@@ -6,10 +6,14 @@ import { Loading } from "@/components/ui/loading";
 type Availability = "checking" | "available" | "unavailable";
 const ServiceAvailability = createContext(false);
 export function useServiceAvailable() { return useContext(ServiceAvailability); }
+type ExecutionTarget = "browser" | "windows";
+const ExecutionTargets = createContext<ExecutionTarget[]>([]);
+export function useExecutionTargets() { return useContext(ExecutionTargets); }
 
 export function ServiceGate({ children }: { children: ReactNode }) {
   const [availability, setAvailability] = useState<Availability>("checking");
   const [hasConnected, setHasConnected] = useState(false);
+  const [targets, setTargets] = useState<ExecutionTarget[]>([]);
   const checking = useRef(false);
 
   useEffect(() => {
@@ -28,6 +32,8 @@ export function ServiceGate({ children }: { children: ReactNode }) {
         if (!data || typeof data !== "object" || !("status" in data) || data.status !== "available") {
           setAvailability("unavailable"); return;
         }
+        const next = "executionTargets" in data && Array.isArray(data.executionTargets) ? data.executionTargets.filter((item): item is ExecutionTarget => item === "browser" || item === "windows") : [];
+        setTargets((current) => current.length === next.length && current.every((value, index) => value === next[index]) ? current : next);
         setHasConnected(true);
         setAvailability("available");
       } catch {
@@ -53,7 +59,7 @@ export function ServiceGate({ children }: { children: ReactNode }) {
   }, []);
 
   return <>
-    {hasConnected && <ServiceAvailability.Provider value={availability === "available"}><div hidden={availability !== "available"}>{children}</div></ServiceAvailability.Provider>}
+    {hasConnected && <ServiceAvailability.Provider value={availability === "available"}><ExecutionTargets.Provider value={targets}><div hidden={availability !== "available"}>{children}</div></ExecutionTargets.Provider></ServiceAvailability.Provider>}
     {availability !== "available" && <main className="unavailable" aria-live="polite">
       {availability === "checking" ? <Loading label="Checking services" /> : <div><h1>Some services are currently unavailable.</h1><p>We’ll reconnect automatically when they’re back.</p></div>}
     </main>}
