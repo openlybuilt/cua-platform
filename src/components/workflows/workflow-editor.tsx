@@ -29,6 +29,10 @@ export function WorkflowEditor({ workflow, windowsAvailable, onBack }: { workflo
   const [showSaved, setShowSaved] = useState(false);
   const previous = useRef(save.status);
   const panelKey = useRef(0);
+  const settingsRef = useRef<HTMLElement>(null);
+  useEffect(() => {
+    if (panel && window.matchMedia("(max-width: 760px)").matches) settingsRef.current?.scrollIntoView({ block: "start" });
+  }, [panel]);
   useEffect(() => {
     if (save.status === "saved" && previous.current !== "saved") {
       setShowSaved(true);
@@ -104,7 +108,7 @@ export function WorkflowEditor({ workflow, windowsAvailable, onBack }: { workflo
           <button className="editor-plus" type="button" aria-label="Add a step" disabled={save.draft.steps.length >= 30} onClick={() => openPanel()}>+</button><div className="editor-line" /><span className="editor-end">End</span>
         </div>
       </div>
-      {panel && <aside className="editor-settings"><StepEditor key={panel.key} initial={panel.index === undefined ? undefined : save.draft.steps[panel.index]} initialKind={panel.kind} target={save.draft.executionTarget} onChange={changeStep} onClose={() => setPanel(undefined)} /></aside>}
+      {panel && <aside ref={settingsRef} className="editor-settings"><StepEditor key={panel.key} initial={panel.index === undefined ? undefined : save.draft.steps[panel.index]} initialKind={panel.kind} target={save.draft.executionTarget} onChange={changeStep} onClose={() => setPanel(undefined)} /></aside>}
     </div>
     <Dialog open={details && available} onOpenChange={closeDetails} title="Workflow details" description="Edit the workflow’s name, description, and VM type.">
       <div className="workflow-fields">
