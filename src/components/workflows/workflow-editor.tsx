@@ -19,7 +19,7 @@ function inputNames(steps: Step[]) {
   return [...new Set([...JSON.stringify(steps).matchAll(/\{\{([A-Za-z][A-Za-z0-9_]{0,49})\}\}/g)].map((match) => match[1]!))];
 }
 
-export function WorkflowEditor({ workflow, windowsAvailable, onBack, onRunStarted }: { workflow: Workflow; windowsAvailable: boolean; onBack: () => void; onRunStarted: (run: Run) => void }) {
+export function WorkflowEditor({ workflow, windowsAvailable, onBack, onRunStarted, onViewHistory }: { workflow: Workflow; windowsAvailable: boolean; onBack: () => void; onRunStarted: (run: Run) => void; onViewHistory: (workflow: { id: string; name: string }) => void }) {
   const save = useWorkflowDraft(workflow);
   const available = useServiceAvailable();
   const [panel, setPanel] = useState<Panel>();
@@ -79,6 +79,7 @@ export function WorkflowEditor({ workflow, windowsAvailable, onBack, onRunStarte
     setLeaving(false);
     if (saved) onBack();
   }
+  async function openHistory() { if (await save.flush()) onViewHistory({ id: workflow.id, name: save.draft.name }); }
   async function openRun() {
     setScheduleError("");
     if (!await save.flush()) return;
@@ -113,10 +114,11 @@ export function WorkflowEditor({ workflow, windowsAvailable, onBack, onRunStarte
       <div className="editor-leading"><button className="editor-back" type="button" aria-label="Back to workflows" disabled={leaving} onClick={() => void back()}><ArrowLeft size={20} /></button>
       <div className="editor-title"><h1>{save.draft.name}</h1><span role="status">{displayStatus}</span></div></div>
       <button ref={scheduleButton} type="button" className="editor-schedule" aria-label="Schedule workflow" title="Schedule workflow" disabled={!save.draft.steps.length || leaving} onClick={() => void openSchedule()}><CalendarClock size={19}/></button>
-      <div className="editor-header-actions"><button type="button" className="editor-quiet" disabled={!save.canUndo || leaving} onClick={() => { setPanel(undefined); save.undo(); }}>Undo</button><button type="button" className="editor-quiet" disabled={!save.canRedo || leaving} onClick={() => { setPanel(undefined); save.redo(); }}>Redo</button><button type="button" className="editor-quiet" onClick={() => { setDetailsName(save.draft.name); setDetailsError(""); setDetails(true); }}><Pencil size={15} aria-hidden="true" />Details</button><button type="button" className="button" disabled={!save.draft.steps.length || leaving} onClick={() => void openRun()}>Run workflow</button></div>
+      <div className="editor-header-actions"><button type="button" className="editor-quiet" disabled={!save.canUndo || leaving} onClick={() => { setPanel(undefined); save.undo(); }}>Undo</button><button type="button" className="editor-quiet" disabled={!save.canRedo || leaving} onClick={() => { setPanel(undefined); save.redo(); }}>Redo</button><button type="button" className="editor-quiet" onClick={() => void openHistory()}>Run history</button><button type="button" className="editor-quiet" onClick={() => { setDetailsName(save.draft.name); setDetailsError(""); setDetails(true); }}><Pencil size={15} aria-hidden="true" />Details</button><button type="button" className="button" disabled={!save.draft.steps.length || leaving} onClick={() => void openRun()}>Run workflow</button></div>
       <div className="editor-action-menu"><Dropdown label="Actions" items={[
         { label: "Undo", disabled: !save.canUndo || leaving, onSelect: () => { setPanel(undefined); save.undo(); } },
         { label: "Redo", disabled: !save.canRedo || leaving, onSelect: () => { setPanel(undefined); save.redo(); } },
+        { label: "Run history", onSelect: () => void openHistory() },
         { label: "Run workflow", disabled: !save.draft.steps.length || leaving, onSelect: () => void openRun() },
         { label: "Details", onSelect: () => { setDetailsName(save.draft.name); setDetailsError(""); setDetails(true); } },
       ]}/></div>
