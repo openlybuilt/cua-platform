@@ -100,7 +100,11 @@ export function WorkflowEditor({ workflow, windowsAvailable, onBack, onRunStarte
     const incompatible = save.draft.steps.some((step) => step.type === "scroll" && (next === "browser" ? "wheelTicks" in step : "pixels" in step));
     if (incompatible) { setDetailsError("Remove incompatible scroll steps before changing the VM type."); return; }
     setDetailsError("");
-    save.update((current) => ({ ...current, executionTarget: next }));
+    save.update((current) => {
+      const updated = { ...current, executionTarget: next };
+      if (next !== (current.executionTarget ?? "browser")) delete updated.provider;
+      return updated;
+    });
   }
   function closeDetails(next: boolean) {
     if (!next && !detailsName.trim()) { setDetailsError("Enter a workflow name."); return; }
