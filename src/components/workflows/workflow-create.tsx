@@ -41,14 +41,22 @@ export function WorkflowCreate({ targets, onCreated, onBack, returnFocus }: { ta
   }
   return <>
     <Dialog open={available} onOpenChange={(next) => { if (!next) back(); }} returnFocus={returnFocus} title="Create a workflow" description="Start with the basics. You’ll add the steps next.">
-      <form className="workflow-create-form" onSubmit={(event) => void create(event)}>
-        <label htmlFor="workflow-name">Workflow name<input id="workflow-name" autoFocus required maxLength={120} value={name} onChange={(event) => setName(event.target.value)} placeholder="e.g. Check a website" /></label>
-        <label htmlFor="workflow-description">Description<textarea id="workflow-description" maxLength={1000} value={description} onChange={(event) => setDescription(event.target.value)} placeholder="What will this workflow do?" /></label>
-        <label htmlFor="workflow-vm">VM type<Select id="workflow-vm" label="VM type" value={target} onChange={(value) => setTarget(value as typeof target)} options={[{ value: "browser", label: "Browser VM", disabled: !targets.includes("browser") }, { value: "windows", label: "Computer VM", disabled: !targets.includes("windows") }]} /></label>
-        {error && <p className="step-error" role="alert">{error}</p>}
-        <Button type="submit" disabled={busy || uncertain || !name.trim() || !targets.includes(target)}>{busy ? "Creating…" : "Continue →"}</Button>
-      </form>
+      <WorkflowCreateFields name={name} description={description} target={target} targets={targets} setName={setName} setDescription={setDescription} setTarget={setTarget} onSubmit={(event) => void create(event)} disabled={busy || uncertain} busy={busy} error={error} />
     </Dialog>
     <Dialog open={confirm && available} onOpenChange={setConfirm} title="Discard changes?" description="Your workflow has not been created."><div className="workflow-actions"><Button variant="quiet" onClick={() => setConfirm(false)}>Keep editing</Button><Button onClick={onBack}>Discard changes</Button></div></Dialog>
   </>;
+}
+
+export function WorkflowCreateFields({ name, description, target, targets, setName, setDescription, setTarget, onSubmit, disabled = false, busy = false, error = "" }: {
+  name: string; description: string; target: "browser" | "windows"; targets: ("browser" | "windows")[];
+  setName: (value: string) => void; setDescription: (value: string) => void; setTarget: (value: "browser" | "windows") => void;
+  onSubmit: (event: React.FormEvent) => void; disabled?: boolean; busy?: boolean; error?: string;
+}) {
+  return <form className="workflow-create-form" onSubmit={onSubmit}>
+    <label>Workflow name<input autoFocus required maxLength={120} value={name} onChange={(event) => setName(event.target.value)} placeholder="e.g. Check a website" /></label>
+    <label>Description<textarea maxLength={1000} value={description} onChange={(event) => setDescription(event.target.value)} placeholder="What will this workflow do?" /></label>
+    <label>VM type<Select label="VM type" value={target} onChange={(value) => setTarget(value as "browser" | "windows")} options={[{ value: "browser", label: "Browser VM", disabled: !targets.includes("browser") }, { value: "windows", label: "Computer VM", disabled: !targets.includes("windows") }]} /></label>
+    {error && <p className="step-error" role="alert">{error}</p>}
+    <Button type="submit" disabled={disabled || !name.trim() || !targets.includes(target)}>{busy ? "Creating…" : "Continue →"}</Button>
+  </form>;
 }

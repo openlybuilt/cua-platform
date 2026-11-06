@@ -19,7 +19,7 @@ function inputNames(steps: Step[]) {
   return [...new Set([...JSON.stringify(steps).matchAll(/\{\{([A-Za-z][A-Za-z0-9_]{0,49})\}\}/g)].map((match) => match[1]!))];
 }
 
-export function WorkflowEditor({ workflow, windowsAvailable, onBack, onRunStarted, onStepSaved }: { workflow: Workflow; windowsAvailable: boolean; onBack: () => void; onRunStarted: (run: Run) => void; onStepSaved?: () => void }) {
+export function WorkflowEditor({ workflow, windowsAvailable, onBack, onRunStarted, onStepSaved, onStepChange, onRunDirect }: { workflow: Workflow; windowsAvailable: boolean; onBack: () => void; onRunStarted: (run: Run) => void; onStepSaved?: (definition: Definition) => void; onStepChange?: (step: Step) => void; onRunDirect?: (workflow: Workflow) => Promise<void> }) {
   const save = useWorkflowDraft(workflow);
   const available = useServiceAvailable();
   const [panel, setPanel] = useState<Panel>();
@@ -62,6 +62,7 @@ export function WorkflowEditor({ workflow, windowsAvailable, onBack, onRunStarte
     setPanel({ key: ++panelKey.current, index, insertAt, kind });
   }
   function changeStep(step: Step) {
+    onStepChange?.(step);
     const steps = [...save.draft.steps];
     if (slot.current === null) {
       if (steps.length >= 30) return;
@@ -72,7 +73,7 @@ export function WorkflowEditor({ workflow, windowsAvailable, onBack, onRunStarte
     replaceSteps(steps);
   }
   async function saveStep() {
-    if (await save.flush()) { setPanel(undefined); onStepSaved?.(); }
+    if (await save.flush()) { setPanel(undefined); onStepSaved?.(save.draft); }
   }
   async function back() {
     if (leaving) return;
@@ -85,8 +86,8 @@ export function WorkflowEditor({ workflow, windowsAvailable, onBack, onRunStarte
   async function openRun() {
     setScheduleError("");
     if (!await save.flush()) return;
-    try { setRunWorkflow(await request<Workflow>(`workflows/${workflow.id}`)); }
-    catch { setScheduleError("Could not start the workflow. Please try again."); }
+    try { const current = await request<Workflow>(`workflows/${workflow.id}`); if (onRunDirect) await onRunDirect(current); else setRunWorkflow(current); }
+    catch (problem) { setScheduleError(problem instanceof Error ? problem.message : "Could not start the workflow. Please try again."); }
   }
   async function openSchedule() {
     setScheduleError("");
