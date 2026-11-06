@@ -3,7 +3,7 @@
 .guide-create-dialog { z-index: 1; }
 .guide-sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; }
 .guide-highlight { position: fixed; z-index: 2; border: 1px solid #c9d8ff; border-radius: 8px; box-shadow: 0 0 0 9999px #000b, 0 0 20px #84a8ff99; pointer-events: none; transition: left .6s, top .6s, width .6s, height .6s; }.guide-cursor { position: fixed; z-index: 3; width: 24px; height: 24px; pointer-events: none; filter: drop-shadow(0 0 5px #7aaaff) drop-shadow(0 0 10px #7aaaff99); transition: left 1s cubic-bezier(.2,.7,.2,1), top 1s cubic-bezier(.2,.7,.2,1); }.guide-cursor svg { width: 100%; height: 100%; }
-.guide-highlight--page { inset: 5px; }
+.guide-highlight--hidden { visibility: hidden; transition: none; }
 .guide-shade { position: fixed; inset: 0; z-index: 2; background: #000b; pointer-events: none; }
 .guide-transition-a { animation: guide-fade-a 240ms ease-out; }
 .guide-transition-b { animation: guide-fade-b 240ms ease-out; }
