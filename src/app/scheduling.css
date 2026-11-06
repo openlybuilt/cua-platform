@@ -101,7 +101,8 @@
 .run-step-content { flex: 1; min-width: 0; }
 .run-step-content strong { font-size: 14px; font-weight: 400; }
 .run-steps .run-step-content p { margin: 5px 0 0; font-size: 12px; line-height: 1.5; }
-.run-steps .run-step-content .run-step-error { color: var(--danger); }
+.run-steps .run-step-content .run-step-message--success { color: var(--success); font-style: italic; }
+.run-steps .run-step-content .run-step-message--error { color: var(--danger); }
 .run-steps .run-step-status { flex: none; float: none; color: var(--text-muted); font-size: 11px; }
 .run-canvas-message { margin: 28px; color: var(--text-muted); font-size: 13px; }
 @media (max-width: 760px) { .run-canvas { min-height: 440px; } }
