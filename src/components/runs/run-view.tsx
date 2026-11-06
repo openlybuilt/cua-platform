@@ -52,7 +52,7 @@ export function RunView({ initial, onBack, onRunUpdate }: { initial: Run; onBack
               return <li className="run-step-group" key={index}>
                 <div className="run-step-card">
                   <span className="editor-node-icon" aria-hidden="true">{choice?.icon ?? "•"}</span>
-                  <div className="run-step-content"><strong>{choice?.title ?? step.type}</strong><p>{stepSummary(step)}</p>{evidence?.message && <p className="run-step-error">{evidence.message}</p>}</div>
+                  <div className="run-step-content"><strong>{choice?.title ?? step.type}</strong><p>{stepSummary(step)}</p>{evidence?.message && <p className={`run-step-message--${statusTone(state)}`}>{evidence.message}</p>}</div>
                   <span className={`run-step-status run-status--${statusTone(state)}`}>{statusLabel(state).toLowerCase()}</span>
                 </div>
                 <div className="editor-line" aria-hidden="true" />
