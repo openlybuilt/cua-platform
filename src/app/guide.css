@@ -14,4 +14,5 @@
 @media(prefers-reduced-motion:reduce) { .guide-highlight,.guide-cursor { transition: none; }.guide-transition-a,.guide-transition-b { animation: none; } }
 @media(max-width:760px) { .practice-guide-card { bottom: 53px; } }
 .practice-guide-card--center { top: 50%; bottom: auto; transform: translate(-50%, -50%); }
+.practice-guide-card--top-right { top: 16px; right: 16px; bottom: auto; left: auto; transform: none; }
 .guide-controls .guide-skip { border: 1px solid #777; background: transparent; color: #ddd; }
