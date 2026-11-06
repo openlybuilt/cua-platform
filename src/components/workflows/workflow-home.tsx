@@ -13,7 +13,7 @@ function result(run: Run) {
   return value && typeof value === "object" && "message" in value && typeof value.message === "string" ? value.message : "—";
 }
 
-export function WorkflowHome({ active, onCreate, onOpen, onOpenRun, createButtonRef }: { createButtonRef?: Ref<HTMLButtonElement>; active: boolean; onCreate: () => void; onOpen: (workflow: Workflow) => void; onOpenRun: (run: Run) => void }) {
+export function WorkflowHome({ active, onCreate, onOpen, onOpenRun, onViewHistory, onViewWorkflows, createButtonRef }: { createButtonRef?: Ref<HTMLButtonElement>; active: boolean; onCreate: () => void; onOpen: (workflow: Workflow) => void; onOpenRun: (run: Run) => void; onViewHistory?: () => void; onViewWorkflows?: () => void }) {
   const [workflows, setWorkflows] = useState<Workflow[]>([]);
   const [runs, setRuns] = useState<Run[]>([]);
   const [loading, setLoading] = useState(true);
@@ -34,15 +34,15 @@ export function WorkflowHome({ active, onCreate, onOpen, onOpenRun, createButton
     return () => { current = false; };
   }, [active, attempt]);
   return <>
-    <header className="home-heading"><h1>Workflows</h1><button ref={createButtonRef} type="button" className="home-create" onClick={onCreate}><Plus size={17} aria-hidden="true" />Create workflow</button></header>
+    <header className="home-heading"><h1>Home</h1><button ref={createButtonRef} type="button" className="home-create" onClick={onCreate}><Plus size={17} aria-hidden="true" />Create workflow</button></header>
     {loading ? <p className="home-message">Loading workspace…</p> : error ? <p role="alert" className="home-message">{error} <button type="button" className="home-link" onClick={() => setAttempt((value) => value + 1)}>Try again</button></p> : <>
-      <section className="home-section"><div className="home-section-heading"><h2>Recent runs</h2></div>
+      <section className="home-section"><div className="home-section-heading"><h2>{onViewHistory ? <button type="button" className="home-section-link" onClick={onViewHistory}>Recent runs</button> : "Recent runs"}</h2></div>
         <div className="home-table-wrap"><table className="home-table"><thead><tr><th>Workflow</th><th>Status</th><th>Result</th><th>When</th></tr></thead><tbody>
           {runs.slice(0, 3).map((run) => <tr key={run.id}><td><button type="button" className="home-workflow" onClick={() => onOpenRun(run)}>{run.workflowName || "Workflow"}</button></td><td><span className={`home-status run-status--${statusTone(run.status)}`}><i className={`run-status-dot--${statusTone(run.status)}`} aria-hidden="true" />{statusLabel(run.status)}</span></td><td>{result(run)}</td><td>{date(run.createdAt)}</td></tr>)}
           {!runs.length && <tr><td colSpan={4}>Your runs will appear here.</td></tr>}
         </tbody></table></div>
       </section>
-      <section className="home-section"><div className="home-section-heading"><h2>All workflows</h2><span>{workflows.length} {workflows.length === 1 ? "workflow" : "workflows"}</span></div>
+      <section className="home-section"><div className="home-section-heading"><h2>{onViewWorkflows ? <button type="button" className="home-section-link" onClick={onViewWorkflows}>All workflows</button> : "All workflows"}</h2><span>{workflows.length} {workflows.length === 1 ? "workflow" : "workflows"}</span></div>
         <div className="home-table-wrap"><table className="home-table home-workflows"><thead><tr><th>Workflow</th><th>Last activity</th></tr></thead><tbody>
           {workflows.map((workflow) => { const latest = runs.find((run) => run.workflowId === workflow.id); return <tr key={workflow.id}><td><button type="button" className="home-workflow" onClick={() => onOpen(workflow)}>{workflow.definition.name}</button>{workflow.definition.description && <span className="home-description">{workflow.definition.description}</span>}</td><td>{latest ? date(latest.createdAt) : "—"}</td></tr>; })}
           {!workflows.length && <tr><td colSpan={2}>You haven’t created a workflow yet.</td></tr>}
