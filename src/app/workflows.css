@@ -52,3 +52,7 @@
 .workflow-create-form textarea { min-height: 90px; resize: vertical; }
 .workflow-create-form input::placeholder, .workflow-create-form textarea::placeholder { color: var(--text-muted); opacity: .7; }
 .workflow-create-form > button { width: 100%; }
+
+.workflow-delete-action { color: var(--danger); }
+.workflow-delete-confirm { background: #b42318; border-color: #b42318; color: #fff; }
+.workflow-delete-confirm:hover:not(:disabled) { background: #912018; }
