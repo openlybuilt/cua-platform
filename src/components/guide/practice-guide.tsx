@@ -9,24 +9,20 @@ const lessons: Lesson[] = [
   { step: "create", title: "Let’s build a workflow", caption: "Hey, welcome to Openly. Let’s build a workflow together. Start by clicking Create workflow." },
   { step: "details", title: "Give it a name", caption: "Give your workflow a name and choose where it will run. You can change these later." },
   { step: "addWebsite", title: "Add your first step", caption: "Now let’s add a step. Click the plus to choose what happens first." },
-  { step: "chooseWebsite", title: "Open a website", caption: "Choose Open a website to start your workflow on a page." },
-  { step: "website", title: "Enter the address", caption: "Enter the website address; the step is added automatically." },
-  { step: "addClick", title: "Add another step", caption: "Nice. Let's add a Click step by clicking the plus again." },
-  { step: "chooseClick", title: "Choose Click", caption: "Let’s add a Click step and tell the AI what to look for." },
-  { step: "click", title: "Describe the target", caption: "Describe exactly what you want the AI to click; the step is added automatically." },
-  { step: "run", title: "Run the workflow", caption: "That’s your workflow. Click play to see what a run looks like." },
-  { step: "result", title: "Watch what happens", caption: "During a real run, you can follow each step and watch the VM. This example is simulated." },
-  { step: "history", title: "Review your runs", caption: "Run history is where you can revisit the status, steps, logs and recording." },
-  { step: "historyRun", title: "Open a run", caption: "Choose a run to see what happened." },
-  { step: "inspectRun", title: "Explore the details", caption: "Here you can review the steps, logs and recording for a real run." },
-  { step: "settings", title: "Last stop: Settings", caption: "Open Settings to manage your preferences." },
-  { step: "settingsView", title: "You’re all set", caption: "You can come back to this guide from Settings anytime." },
+  { step: "run", title: "Run the workflow", caption: "Once you’ve added your steps, click play to run your workflow." },
+  { step: "result", title: "Watch what happens", caption: "Here you can watch the VM and follow your workflow’s progress as it runs. This practice run is simulated." },
+  { step: "back", title: "Head back", caption: "Let’s head back so I can show you where to find your runs." },
+  { step: "history", title: "Run history", caption: "Click Run history to see all of your current and previous runs." },
+  { step: "settings", title: "Visit Settings", caption: "Next, click Settings. There are a few useful options I want to show you." },
+  { step: "settingsView", title: "Make it yours", caption: "In Settings, you can disable recordings, add placeholders, or watch this guide again whenever you like." },
+  { step: "thanks", title: "Thank you!", caption: "Thanks for taking the tour. We hope you enjoy building with Openly!" },
 ];
 
 type Rect = { x: number; y: number; width: number; height: number };
 export function PracticeGuide({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [index, setIndex] = useState(0);
   const [values, setValues] = useState<PracticeValues>({ name: "Check a website", target: "browser", description: "", url: "", click: "" });
+  const [stepEditor, setStepEditor] = useState<"closed" | "choose" | "website">("closed");
   const [rect, setRect] = useState<Rect>();
   const [muted, setMuted] = useState(false);
   const [audioFailed, setAudioFailed] = useState(false);
@@ -42,7 +38,7 @@ export function PracticeGuide({ open, onClose }: { open: boolean; onClose: () =>
     const observer = new ResizeObserver(measure); observer.observe(target);
     window.addEventListener("resize", measure); window.addEventListener("scroll", measure, true);
     return () => { observer.disconnect(); window.removeEventListener("resize", measure); window.removeEventListener("scroll", measure, true); };
-  }, [index, root]);
+  }, [index, root, stepEditor]);
   useLayoutEffect(() => {
     setAudioFailed(false);
     const audio = audioRef.current;
@@ -59,10 +55,10 @@ export function PracticeGuide({ open, onClose }: { open: boolean; onClose: () =>
   } : undefined;
   return <Dialog.Root open={open} onOpenChange={open => { if (!open) onClose(); }}><Dialog.Portal><Dialog.Content className="practice-guide" aria-describedby={undefined} ref={setRoot}>
     <Dialog.Title className="guide-sr-only">Openly practice guide</Dialog.Title>
-    <PracticeScene step={lesson.step} advance={advance} values={values} setValues={setValues} />
+    <PracticeScene step={lesson.step} advance={advance} values={values} setValues={setValues} stepEditor={stepEditor} setStepEditor={setStepEditor} />
     {position && <div className="guide-highlight" style={position} aria-hidden="true" />}
     {rect && <div className="guide-cursor" style={{ left: Math.min(rect.x + rect.width - 12, window.innerWidth - 28), top: Math.min(rect.y + rect.height - 4, window.innerHeight - 28) }} aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M5 2.5v22l6.1-6.1 4.6 10.1 4-1.8-4.6-9.9h9.1z" fill="white" stroke="#111" strokeWidth="1.7" strokeLinejoin="round" /></svg></div>}
-    <section className="practice-guide-card" style={cardPosition} aria-live="polite"><span className="guide-label">Getting started</span><h2>{lesson.title}</h2><p>{lesson.caption}</p>
+    <section className="practice-guide-card" style={cardPosition} aria-live="polite"><span className="guide-label">Getting started</span><h2>{lesson.title}</h2><p>{lesson.step === "addWebsite" && stepEditor === "choose" ? "Choose Open a website to add your first step." : lesson.step === "addWebsite" && stepEditor === "website" ? "Enter a website address to add the step automatically." : lesson.caption}</p>
       {lesson.audio && <div className="guide-audio"><audio ref={audioRef} src={lesson.audio} onError={() => setAudioFailed(true)} /><button type="button" onClick={() => setMuted(v => !v)}>{muted ? "Unmute" : "Mute"}</button><button type="button" disabled={muted} onClick={() => { if (audioRef.current) { audioRef.current.currentTime = 0; void audioRef.current.play().catch(() => setAudioFailed(true)); } }}>Replay narration</button>{audioFailed && <span>Audio unavailable; captions are shown.</span>}</div>}
       <div className="guide-controls"><button type="button" className="guide-quiet" disabled={index === 0} onClick={() => setIndex(i => Math.max(i - 1, 0))}>Back</button><button type="button" className="guide-primary" onClick={index === lessons.length - 1 ? onClose : advance}>{index === lessons.length - 1 ? "Finish" : "Next"}</button><span>{index + 1} / {lessons.length}</span><button type="button" className="guide-quiet" onClick={onClose}>Skip</button></div>
     </section><div className="guide-practice-note">Practice guide · Your workflows won’t be changed</div>
