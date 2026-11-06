@@ -13,15 +13,15 @@ function result(run: Run) {
   return value && typeof value === "object" && "message" in value && typeof value.message === "string" ? value.message : "—";
 }
 
-export function WorkflowHome({ active, onCreate, onOpen, onOpenRun, createButtonRef, practice }: { createButtonRef?: Ref<HTMLButtonElement>; active: boolean; onCreate: () => void; onOpen: (workflow: Workflow) => void; onOpenRun: (run: Run) => void; practice?: { workflows: Workflow[]; runs: Run[] } }) {
-  const [workflows, setWorkflows] = useState<Workflow[]>(practice?.workflows ?? []);
-  const [runs, setRuns] = useState<Run[]>(practice?.runs ?? []);
-  const [loading, setLoading] = useState(!practice);
+export function WorkflowHome({ active, onCreate, onOpen, onOpenRun, createButtonRef }: { createButtonRef?: Ref<HTMLButtonElement>; active: boolean; onCreate: () => void; onOpen: (workflow: Workflow) => void; onOpenRun: (run: Run) => void }) {
+  const [workflows, setWorkflows] = useState<Workflow[]>([]);
+  const [runs, setRuns] = useState<Run[]>([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [attempt, setAttempt] = useState(0);
   const loaded = useRef(false);
   useEffect(() => {
-    if (!active || practice) return;
+    if (!active) return;
     let current = true;
     if (!loaded.current) setLoading(true);
     setError("");
@@ -32,7 +32,7 @@ export function WorkflowHome({ active, onCreate, onOpen, onOpenRun, createButton
       setRuns([...runs].sort((a, b) => Date.parse(b.createdAt ?? "") - Date.parse(a.createdAt ?? "")));
     }).catch((problem: unknown) => { if (current) setError(problem instanceof Error ? problem.message : "Could not load workflows."); }).finally(() => { if (current) setLoading(false); });
     return () => { current = false; };
-  }, [active, attempt, practice]);
+  }, [active, attempt]);
   return <>
     <header className="home-heading"><h1>Workflows</h1><button ref={createButtonRef} type="button" className="home-create" onClick={onCreate}><Plus size={17} aria-hidden="true" />Create workflow</button></header>
     {loading ? <p className="home-message">Loading workspace…</p> : error ? <p role="alert" className="home-message">{error} <button type="button" className="home-link" onClick={() => setAttempt((value) => value + 1)}>Try again</button></p> : <>

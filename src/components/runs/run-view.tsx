@@ -9,19 +9,19 @@ import { stepChoices, stepSummary } from "@/components/workflows/step-editor";
 
 type Event = { timestamp: string; kind: string; status: string; stepIndex?: number; stepType?: string; action?: string; durationMs?: number; usage?: { inputTokens: number; outputTokens: number } };
 const terminal = new Set(["completed", "failed", "cancelled", "interrupted", "outcome_unknown"]);
-export function RunView({ initial, onBack, practice }: { initial: Run; onBack: () => void; practice?: { workflow: Workflow } }) {
+export function RunView({ initial, onBack }: { initial: Run; onBack: () => void }) {
   const [run, setRun] = useState(initial);
   const [now, setNow] = useState(() => Date.now());
-  const [workflow, setWorkflow] = useState<Workflow | undefined>(practice?.workflow);
-  const [events, setEvents] = useState<Event[] | undefined>(practice ? [] : undefined);
+  const [workflow, setWorkflow] = useState<Workflow>();
+  const [events, setEvents] = useState<Event[]>();
   const [error, setError] = useState("");
   const [logsError, setLogsError] = useState(false);
   const [logsOpen, setLogsOpen] = useState(true);
   const [logQuery, setLogQuery] = useState("");
   const [busy, setBusy] = useState(false);
-  useEffect(() => { if (practice) return; let active = true; if (run.workflowId && run.workflowVersion) void request<Workflow>(`workflows/${run.workflowId}/versions/${run.workflowVersion}`).then((value) => { if (active) setWorkflow(value); }).catch(() => { if (active) setError("Could not load the workflow version."); }); return () => { active = false; }; }, [run.workflowId, run.workflowVersion, practice]);
-  useEffect(() => { if (practice) return; let active = true; let timer: number | undefined; async function refresh() { try { const next = await request<Run>(`runs/${initial.id}`); if (!active) return; setRun(next); if (!terminal.has(next.status) || next.recordingStatus === "pending") timer = window.setTimeout(refresh, 1500); } catch { if (active) { setError("Run status is temporarily unavailable."); timer = window.setTimeout(refresh, 5000); } } } void refresh(); return () => { active = false; if (timer) window.clearTimeout(timer); }; }, [initial.id, practice]);
-  useEffect(() => { if (practice) return; let active = true; let timer: number | undefined; async function refresh() { try { const logs = await request<Event[]>(`runs/${initial.id}/events`); if (active) { setEvents(logs); setLogsError(false); } } catch { if (active) setLogsError(true); } if (active && !terminal.has(run.status)) timer = window.setTimeout(refresh, 1500); } void refresh(); return () => { active = false; if (timer) window.clearTimeout(timer); }; }, [initial.id, run.status, practice]);
+  useEffect(() => { let active = true; if (run.workflowId && run.workflowVersion) void request<Workflow>(`workflows/${run.workflowId}/versions/${run.workflowVersion}`).then((value) => { if (active) setWorkflow(value); }).catch(() => { if (active) setError("Could not load the workflow version."); }); return () => { active = false; }; }, [run.workflowId, run.workflowVersion]);
+  useEffect(() => { let active = true; let timer: number | undefined; async function refresh() { try { const next = await request<Run>(`runs/${initial.id}`); if (!active) return; setRun(next); if (!terminal.has(next.status) || next.recordingStatus === "pending") timer = window.setTimeout(refresh, 1500); } catch { if (active) { setError("Run status is temporarily unavailable."); timer = window.setTimeout(refresh, 5000); } } } void refresh(); return () => { active = false; if (timer) window.clearTimeout(timer); }; }, [initial.id]);
+  useEffect(() => { let active = true; let timer: number | undefined; async function refresh() { try { const logs = await request<Event[]>(`runs/${initial.id}/events`); if (active) { setEvents(logs); setLogsError(false); } } catch { if (active) setLogsError(true); } if (active && !terminal.has(run.status)) timer = window.setTimeout(refresh, 1500); } void refresh(); return () => { active = false; if (timer) window.clearTimeout(timer); }; }, [initial.id, run.status]);
   useEffect(() => {
     if (terminal.has(run.status)) return;
     setNow(Date.now());
