@@ -6,6 +6,7 @@ import { useExecutionTargets } from "@/components/service/service-gate";
 import { WorkspaceShell } from "@/components/workspace/workspace-shell";
 import { WorkflowHome } from "@/components/workflows/workflow-home";
 import { WorkflowCreateFields } from "@/components/workflows/workflow-create";
+import { useProviderCapabilities } from "@/components/workflows/use-provider-capabilities";
 import { WorkflowEditor } from "@/components/workflows/workflow-editor";
 import { RunView } from "@/components/runs/run-view";
 import { RunHistory } from "@/components/runs/run-history";
@@ -27,6 +28,8 @@ type Props = {
 
 export function PracticeScene({ step, advance, values, setValues, setStepEditor, setDraft, resetReady, workflow, run, onRunUpdate, creating, createUncertain, error, createWorkflow, stepSaved, startRun }: Props) {
   const targets = useExecutionTargets();
+  const { providers, status: providerStatus } = useProviderCapabilities();
+  const guideProvider = providers.find((item) => item.id === "onkernel" && item.executionTargets.includes("browser"));
   const setValue = (key: "name" | "target" | "description", value: string) => setValues(current => ({ ...current, [key]: value }));
   if ((step === "addWebsite" || step === "run") && workflow) return <div onClickCapture={event => {
     const button = (event.target as HTMLElement).closest("button");
@@ -47,6 +50,6 @@ export function PracticeScene({ step, advance, values, setValues, setStepEditor,
     {view === "home" && <WorkflowHome active onCreate={() => { if (step === "create") advance(); }} onOpen={() => {}} onOpenRun={() => {}} />}
     {view === "history" && <RunHistory active onOpen={() => {}} />}
     {view === "settings" && <section className="timezone-settings page-enter"><h1>Settings</h1><section className="guide-settings"><h2>Guide</h2><Button>Open guide</Button></section><h2>Time zone</h2><TimezoneSettings /><Recordings /><Placeholders /></section>}
-    {step === "details" && <div className="guide-create-overlay"><div className="guide-create-dialog dialog-content"><div className="dialog-heading"><div><h2 className="dialog-title">Create a workflow</h2><p className="dialog-description">Start with the basics. You’ll add the steps next.</p></div></div><WorkflowCreateFields name={values.name} description={values.description} target="browser" targets={targets.filter(target => target === "browser")} setName={value => setValue("name", value)} setDescription={value => setValue("description", value)} setTarget={() => {}} disabled={creating || createUncertain} busy={creating} error={!targets.includes("browser") ? "A Browser VM provider is required for this guide." : error} onSubmit={event => { event.preventDefault(); if (targets.includes("browser")) void createWorkflow(); }} /></div></div>}
+    {step === "details" && <div className="guide-create-overlay"><div className="guide-create-dialog dialog-content"><div className="dialog-heading"><div><h2 className="dialog-title">Create a workflow</h2><p className="dialog-description">Start with the basics. You’ll add the steps next.</p></div></div><WorkflowCreateFields name={values.name} description={values.description} target="browser" targets={guideProvider ? ["browser"] : []} provider="onkernel" providers={guideProvider ? [guideProvider] : []} providerStatus={providerStatus} setProvider={() => {}} setName={value => setValue("name", value)} setDescription={value => setValue("description", value)} setTarget={() => {}} disabled={creating || createUncertain} busy={creating} error={providerStatus === "ready" && !guideProvider ? "OnKernel Browser VM is required for this guide." : error} onSubmit={event => { event.preventDefault(); if (guideProvider && targets.includes("browser")) void createWorkflow(); }} /></div></div>}
   </WorkspaceShell>;
 }
