@@ -44,7 +44,7 @@ body { font-weight: 400; }
 .home-dashboard .home-table { min-width: 0; }
 .home-dashboard .home-table:not(.home-workflows) thead tr,
 .home-dashboard .home-table:not(.home-workflows) tbody tr { display: grid; grid-template-columns: minmax(0, 1fr) auto; }
-.home-dashboard .home-table:not(.home-workflows) thead th:nth-child(n + 3) { display: none; }
+.home-dashboard .home-table:not(.home-workflows) thead th:nth-child(n + 3) { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); padding: 0; white-space: nowrap; }
 .home-dashboard .home-table:not(.home-workflows) tbody td { border-top: 0; padding-bottom: 8px; overflow-wrap: anywhere; }
 .home-dashboard .home-table:not(.home-workflows) tbody tr { border-top: 1px solid #eee; }
 .home-dashboard .home-table:not(.home-workflows) tbody td:nth-child(n + 3) { padding-top: 2px; padding-bottom: 16px; font-size: 12px; }
