@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/select";
 import type { Definition, Step } from "@/lib/workflows/contracts";
 
@@ -28,8 +29,8 @@ export function stepSummary(step: Step): string {
   }
 }
 
-export function StepEditor({ initial, initialKind, target, onChange, onClose }: {
-  initial?: Step; initialKind?: Kind; target: Definition["executionTarget"]; onChange: (step: Step) => void; onClose: () => void;
+export function StepEditor({ initial, initialKind, target, onChange, onClose, onSave }: {
+  initial?: Step; initialKind?: Kind; target: Definition["executionTarget"]; onChange: (step: Step) => void; onClose: () => void; onSave: () => Promise<void>;
 }) {
   const [kind, setKind] = useState<Kind | undefined>(initial?.type ?? initialKind);
   const [value, setValue] = useState(initial?.type === "navigate" ? initial.url : initial?.type === "ai" ? initial.instruction : initial?.type === "type" ? initial.text : initial?.type === "press_keys" ? initial.keys.join(", ") : initial?.type === "click" && "target" in initial ? initial.target : "");
@@ -38,6 +39,8 @@ export function StepEditor({ initial, initialKind, target, onChange, onClose }: 
   const [amount, setAmount] = useState(initial?.type === "wait" ? String(initial.seconds) : initial?.type === "scroll" ? String("pixels" in initial ? initial.pixels : initial.wheelTicks) : "");
   const [direction, setDirection] = useState<"up" | "down" | "left" | "right">(initial?.type === "scroll" ? initial.direction : "down");
   const [error, setError] = useState("");
+  const [valid, setValid] = useState(Boolean(initial));
+  const [saving, setSaving] = useState(false);
   const [touched, setTouched] = useState(false);
   const saved = useRef(Boolean(initial));
   const legacyText = useRef(initial?.type === "type" && !initial.target);
@@ -53,7 +56,7 @@ export function StepEditor({ initial, initialKind, target, onChange, onClose }: 
         if (!/^\{\{[A-Za-z][A-Za-z0-9_]{0,49}\}\}$/.test(value)) { const url = new URL(value); if (!["http:", "https:"].includes(url.protocol)) throw Error("Use an http or https URL."); }
         step = { type: kind, url: value };
       } else if (kind === "ai" || kind === "click") {
-        if (kind === "click" && coordinate && !value.trim()) { setError(""); return; }
+        if (kind === "click" && coordinate && !value.trim()) { setError(""); setValid(true); return; }
         if (!value.trim() || value.length > 10000) throw Error("Enter a description.");
         step = kind === "ai" ? { type: kind, instruction: value } : { type: kind, target: value };
       } else if (kind === "type") {
@@ -73,8 +76,8 @@ export function StepEditor({ initial, initialKind, target, onChange, onClose }: 
         if (!keys.length || keys.length > 10 || keys.some((key) => key.length > 40)) throw Error("Enter up to 10 key presses.");
         step = { type: "press_keys", keys };
       }
-      setError(""); callback.current(step); saved.current = true;
-    } catch (problem) { setError(saved.current ? problem instanceof Error ? problem.message : "Check this step." : ""); }
+      setError(""); setValid(true); callback.current(step); saved.current = true;
+    } catch (problem) { setValid(false); setError(saved.current ? problem instanceof Error ? problem.message : "Check this step." : ""); }
   }, [kind, value, field, region, amount, direction, target, coordinate, initial, touched]);
 
   return <section className="step-editor" aria-label="Step settings">
@@ -91,6 +94,7 @@ export function StepEditor({ initial, initialKind, target, onChange, onClose }: 
       {["navigate", "type", "ai", "click"].includes(kind) && <p className="step-hint">To use a saved value, enter {"{{input_name}}"}.</p>}
       {kind === "press_keys" && <p className="step-hint">Use + for keys together, like Ctrl+Shift+Tab. Separate key presses with commas, like Ctrl+l, Return.</p>}
       {error && <p className="step-error" role="alert">{error}</p>}
+      <Button className="step-save" disabled={!valid || saving} onClick={async () => { setSaving(true); try { await onSave(); } finally { setSaving(false); } }}>{saving ? "Saving…" : "Save step"}</Button>
     </div>}
   </section>;
 }
