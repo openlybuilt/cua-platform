@@ -15,11 +15,11 @@ const exampleEvents: Array<Event & { offset: number }> = [
   { offset: 15.258, timestamp: "2026-11-06T21:27:40.926Z", kind: "action", stepIndex: 1, action: "click", status: "completed", durationMs: 2554 },
   { offset: 15.702, timestamp: "2026-11-06T21:27:41.370Z", kind: "step", stepIndex: 1, stepType: "type", status: "completed", durationMs: 14263 },
 ];
-export function RunView({ initial, onBack, onRunUpdate, example }: { initial: Run; onBack: () => void; onRunUpdate?: (run: Run) => void; example?: { workflow: Workflow } }) {
-  const [run, setRun] = useState(initial);
+export function RunView({ initial, onBack, onRunUpdate, example }: { initial: Run; onBack: () => void; onRunUpdate?: (run: Run) => void; example?: { workflow: Workflow; history?: boolean } }) {
+  const [run, setRun] = useState<Run>(() => example?.history ? { ...initial, status: "completed", steps: example.workflow.definition.steps.map(() => ({ status: "completed" })) } : initial);
   const [now, setNow] = useState(() => Date.now());
   const [workflow, setWorkflow] = useState<Workflow | undefined>(example?.workflow);
-  const [events, setEvents] = useState<Event[] | undefined>(example ? [] : undefined);
+  const [events, setEvents] = useState<Event[] | undefined>(example?.history ? exampleEvents.map(({ offset: _offset, ...event }) => event) : example ? [] : undefined);
   const [error, setError] = useState("");
   const [logsError, setLogsError] = useState(false);
   const [logsOpen, setLogsOpen] = useState(true);
@@ -76,8 +76,8 @@ export function RunView({ initial, onBack, onRunUpdate, example }: { initial: Ru
         </div>
       </section>
       <aside className="run-side">
-        <div className="run-vm"><h2>{example ? "Live VM" : isRunTerminal(run.status) ? "VM screen" : "Live VM"}</h2>
-        {example ? <><video controls autoPlay muted playsInline preload="auto" src="/guide-example.mp4" onTimeUpdate={(event) => updateExample(event.currentTarget.currentTime)} onEnded={() => updateExample(Infinity, true)} onError={() => { setError("The example recording could not be played. You can continue the guide."); updateExample(Infinity, true); }} /></> : !isRunTerminal(run.status) ? <>{run.liveViewUrl ? <iframe title="Live VM" src={run.liveViewUrl} referrerPolicy="no-referrer" /> : <p>Connecting to the VM…</p>}<button className="button" type="button" disabled={busy || run.status === "cancelling"} onClick={() => void stop()}>Stop run</button></> : run.recordingStatus === "saved" ? <video controls preload="metadata" src={`/api/runs/${run.id}/recording`} /> : <p>{run.recordingStatus === "pending" ? "Saving recording…" : run.recordingStatus === "failed" ? "The recording could not be saved." : "No recording available."}</p>}</div>
+        <div className="run-vm"><h2>{example ? example.history ? "Recording" : "Live VM" : isRunTerminal(run.status) ? "VM screen" : "Live VM"}</h2>
+        {example ? <><video controls autoPlay={!example.history} muted={!example.history} playsInline preload="metadata" src="/guide-example.mp4" onTimeUpdate={(event) => { if (!example.history) updateExample(event.currentTarget.currentTime); }} onEnded={() => { if (!example.history) updateExample(Infinity, true); }} onError={() => { setError(example.history ? "The example recording could not be played." : "The example recording could not be played. You can continue the guide."); if (!example.history) updateExample(Infinity, true); }} /></> : !isRunTerminal(run.status) ? <>{run.liveViewUrl ? <iframe title="Live VM" src={run.liveViewUrl} referrerPolicy="no-referrer" /> : <p>Connecting to the VM…</p>}<button className="button" type="button" disabled={busy || run.status === "cancelling"} onClick={() => void stop()}>Stop run</button></> : run.recordingStatus === "saved" ? <video controls preload="metadata" src={`/api/runs/${run.id}/recording`} /> : <p>{run.recordingStatus === "pending" ? "Saving recording…" : run.recordingStatus === "failed" ? "The recording could not be saved." : "No recording available."}</p>}</div>
         <details className="run-log-panel" open={logsOpen} onToggle={(event) => setLogsOpen(event.currentTarget.open)}>
           <summary className="run-log-heading"><span>Logs</span><ChevronDown size={16} aria-hidden="true" /></summary>
           <label className="run-log-search"><Search size={14} aria-hidden="true" /><input type="search" aria-label="Search logs" placeholder="Search logs" value={logQuery} onChange={(event) => setLogQuery(event.target.value)} /></label>
