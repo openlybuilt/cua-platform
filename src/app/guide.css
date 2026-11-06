@@ -15,7 +15,7 @@
 @media(max-width:760px) { .practice-guide-card { bottom: 53px; } }
 .practice-guide-card--center { top: 50%; bottom: auto; transform: translate(-50%, -50%); }
 .practice-guide-card--top-right { top: 16px; right: 16px; bottom: auto; left: auto; transform: none; }
-@media (min-width: 761px) { .practice-guide-card--top-right { top: 60px; right: clamp(32px, 8vw, 160px); } }
+@media (min-width: 761px) { .practice-guide-card--top-right { top: 100px; right: clamp(96px, 14vw, 250px); } }
 .guide-controls .guide-skip { border: 1px solid #777; background: transparent; color: #ddd; }
 .guide-scene .run-side { align-self: start; display: flex; flex-direction: column; max-height: calc(100dvh - 110px); min-height: 0; }
 .guide-scene .run-vm { flex: 0 0 auto; }
