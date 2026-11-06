@@ -1,0 +1,40 @@
+:root {
+  color-scheme: light;
+  --background: #f6f6f6;
+  --surface: #fff;
+  --surface-raised: #fff;
+  --surface-hover: #f1f1f1;
+  --border: #dedede;
+  --text: #1c1c1c;
+  --text-muted: #656565;
+  --success: #4b4b4b;
+  --danger: #bd3737;
+  --warning: #656565;
+  --focus: #222;
+  --radius: 10px;
+}
+body { font-weight: 400; }
+.workspace-shell { background: var(--background); grid-template-columns: 230px minmax(0, 1fr); }
+.workspace-shell--collapsed { grid-template-columns: 68px minmax(0, 1fr); }
+.workspace-sidebar { background: #fff; border-color: #e9e9e9; }
+.workspace-sidebar-toggle:hover { color: var(--text); }
+.workspace-brand { font-weight: 700; letter-spacing: -.05em; }
+.workspace-nav-item { color: #666; font-weight: 500; }
+.workspace-nav-item--current { background: #ededed; color: #1c1c1c; font-weight: 700; }
+.workspace-content h1, .home-heading h1 { font-size: 36px; font-weight: 600; letter-spacing: -.04em; }
+.home-create { background: #1c1c1c; border-color: #1c1c1c; color: #fff; font-weight: 600; box-shadow: 0 6px 18px #00000012; }
+.home-create:hover { background: #383838; }
+.home-table-wrap { border-color: #e9e9e9; box-shadow: 0 8px 28px #00000008; }
+.home-table th { background: #fafafa; color: #666; font-weight: 600; }
+.home-table td { border-color: #eee; }
+.home-workflow { font-weight: 600; }
+.home-section-heading h2 { font-weight: 600; letter-spacing: -.03em; }
+.select-content, .dropdown-content { background: #fff; box-shadow: 0 12px 30px #0002; }
+.select-item[data-highlighted], .dropdown-item[data-highlighted] { background: #f1f1f1; }
+.dialog-content { box-shadow: 0 12px 35px #0003; }
+.dialog-title { font-weight: 600; }
+.practice-guide { background: var(--background); }
+@media (max-width: 760px) {
+  .workspace-sidebar, .workspace-shell--collapsed .workspace-sidebar { border-color: #e9e9e9; }
+  .workspace-content h1, .home-heading h1 { font-size: 29px; }
+}
