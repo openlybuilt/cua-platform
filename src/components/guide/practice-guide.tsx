@@ -29,7 +29,8 @@ export function PracticeGuide({ open, onClose }: { open: boolean; onClose: () =>
   const audioRef = useRef<HTMLAudioElement>(null);
   const [root, setRoot] = useState<HTMLDivElement | null>(null);
   const lesson = lessons[index]!;
-  const wholePage = lesson.step === "result" || lesson.step === "settingsView" || lesson.step === "thanks";
+  const wholePage = lesson.step === "result" || lesson.step === "settingsView";
+  const thankYou = lesson.step === "thanks";
   const targetSelector = lesson.step === "create" ? ".home-create" : lesson.step === "details" ? ".workflow-create-form input" : lesson.step === "addWebsite" ? stepEditor === "closed" ? ".editor-plus" : stepEditor === "choose" ? ".step-options button:first-child" : ".step-fields input" : lesson.step === "run" ? ".editor-play" : lesson.step === "result" ? ".run-layout" : lesson.step === "back" ? ".run-header button" : lesson.step === "history" ? '[aria-label="Run history"]' : lesson.step === "settings" ? '[aria-label="Settings"]' : ".timezone-settings";
   const advance = useCallback(() => setIndex(i => Math.min(i + 1, lessons.length - 1)), []);
   useLayoutEffect(() => {
@@ -50,7 +51,7 @@ export function PracticeGuide({ open, onClose }: { open: boolean; onClose: () =>
     return () => audio.pause();
   }, [lesson.audio, muted, index]);
   const position = rect ? { left: rect.x - 5, top: rect.y - 5, width: rect.width + 10, height: rect.height + 10 } : undefined;
-  const cardPosition = !wholePage && rect && window.innerWidth > 760 ? {
+  const cardPosition = !wholePage && !thankYou && rect && window.innerWidth > 760 ? {
     left: rect.x >= 390 ? Math.max(16, rect.x - 385) : Math.min(window.innerWidth - 385, rect.x + rect.width + 20),
     top: Math.max(16, Math.min(window.innerHeight - 240, rect.y + rect.height + 20)),
     bottom: "auto", transform: "none",
@@ -58,9 +59,9 @@ export function PracticeGuide({ open, onClose }: { open: boolean; onClose: () =>
   return <Dialog.Root open={open} onOpenChange={open => { if (!open) onClose(); }}><Dialog.Portal><Dialog.Content className="practice-guide" aria-describedby={undefined} ref={setRoot}>
     <Dialog.Title className="guide-sr-only">Openly practice guide</Dialog.Title>
     <PracticeScene step={lesson.step} advance={advance} values={values} setValues={setValues} stepEditor={stepEditor} setStepEditor={setStepEditor} />
-    {position && <div className={`guide-highlight${wholePage ? " guide-highlight--page" : ""}`} style={wholePage ? undefined : position} aria-hidden="true" />}
-    {rect && <div className="guide-cursor" style={{ left: Math.min(rect.x + rect.width - 12, window.innerWidth - 28), top: Math.min(rect.y + rect.height - 4, window.innerHeight - 28) }} aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M5 2.5v22l6.1-6.1 4.6 10.1 4-1.8-4.6-9.9h9.1z" fill="white" stroke="#111" strokeWidth="1.7" strokeLinejoin="round" /></svg></div>}
-    <section className="practice-guide-card" style={cardPosition} aria-live="polite"><span className="guide-label">Getting started</span><h2>{lesson.title}</h2><p>{lesson.step === "addWebsite" && stepEditor === "choose" ? "Choose Open a website to add your first step." : lesson.step === "addWebsite" && stepEditor === "website" ? "Enter a website address to add the step automatically." : lesson.caption}</p>
+    {thankYou || !position ? <div className="guide-shade" aria-hidden="true" /> : <div className={`guide-highlight${wholePage ? " guide-highlight--page" : ""}`} style={wholePage ? undefined : position} aria-hidden="true" />}
+    {rect && !thankYou && <div className="guide-cursor" style={{ left: Math.min(rect.x + rect.width - 12, window.innerWidth - 28), top: Math.min(rect.y + rect.height - 4, window.innerHeight - 28) }} aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M5 2.5v22l6.1-6.1 4.6 10.1 4-1.8-4.6-9.9h9.1z" fill="white" stroke="#111" strokeWidth="1.7" strokeLinejoin="round" /></svg></div>}
+    <section className={`practice-guide-card${thankYou ? " practice-guide-card--center" : ""}`} style={cardPosition} aria-live="polite"><span className="guide-label">Getting started</span><h2>{lesson.title}</h2><p>{lesson.step === "addWebsite" && stepEditor === "choose" ? "Choose Open a website to add your first step." : lesson.step === "addWebsite" && stepEditor === "website" ? "Enter a website address to add the step automatically." : lesson.caption}</p>
       {lesson.audio && <div className="guide-audio"><audio ref={audioRef} src={lesson.audio} onError={() => setAudioFailed(true)} /><button type="button" onClick={() => setMuted(v => !v)}>{muted ? "Unmute" : "Mute"}</button><button type="button" disabled={muted} onClick={() => { if (audioRef.current) { audioRef.current.currentTime = 0; void audioRef.current.play().catch(() => setAudioFailed(true)); } }}>Replay narration</button>{audioFailed && <span>Audio unavailable; captions are shown.</span>}</div>}
       <div className="guide-controls"><button type="button" className="guide-quiet" disabled={index === 0} onClick={() => setIndex(i => Math.max(i - 1, 0))}>Back</button><button type="button" className="guide-primary" disabled={lesson.step === "addWebsite" && !values.url} onClick={index === lessons.length - 1 ? onClose : advance}>{index === lessons.length - 1 ? "Finish" : "Next"}</button><span>{index + 1} / {lessons.length}</span><button type="button" className="guide-quiet" onClick={onClose}>Skip</button></div>
     </section><div className="guide-practice-note">Practice guide · Your workflows won’t be changed</div>
