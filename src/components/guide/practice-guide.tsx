@@ -6,7 +6,8 @@ import { PracticeScene, type PracticeStep, type PracticeValues } from "./practic
 
 type Lesson = { step: PracticeStep; title: string; caption: string; audio?: string };
 const lessons: Lesson[] = [
-  { step: "create", title: "Let’s build a workflow", caption: "Hey, welcome to Openly. Let’s build a workflow together. Start by clicking Create workflow." },
+  { step: "welcome", title: "Welcome to Openly", caption: "Hey, I’m glad you’re here. Let’s walk through how to build and run your first workflow together." },
+  { step: "create", title: "Let’s build a workflow", caption: "Start by clicking Create workflow." },
   { step: "details", title: "Give it a name", caption: "Give your workflow a name and choose where it will run. You can change these later." },
   { step: "addWebsite", title: "Add your first step", caption: "Now let’s add a step. Click the plus to choose what happens first." },
   { step: "run", title: "Run the workflow", caption: "Once you’ve added your steps, click play to run your workflow." },
@@ -30,7 +31,7 @@ export function PracticeGuide({ open, onClose }: { open: boolean; onClose: () =>
   const [root, setRoot] = useState<HTMLDivElement | null>(null);
   const lesson = lessons[index]!;
   const wholePage = lesson.step === "result" || lesson.step === "settingsView";
-  const thankYou = lesson.step === "thanks";
+  const centered = lesson.step === "welcome" || lesson.step === "thanks";
   const transition = (index + (stepEditor === "choose" ? 1 : stepEditor === "website" ? 2 : 0)) % 2 ? "b" : "a";
   const targetSelector = lesson.step === "create" ? ".home-create" : lesson.step === "details" ? ".workflow-create-form input" : lesson.step === "addWebsite" ? stepEditor === "closed" ? ".editor-plus" : stepEditor === "choose" ? ".step-options button:first-child" : ".step-fields input" : lesson.step === "run" ? ".editor-play" : lesson.step === "result" ? ".run-layout" : lesson.step === "back" ? ".run-header button" : lesson.step === "history" ? '[aria-label="Run history"]' : lesson.step === "settings" ? '[aria-label="Settings"]' : ".timezone-settings";
   const advance = useCallback(() => setIndex(i => Math.min(i + 1, lessons.length - 1)), []);
@@ -52,7 +53,7 @@ export function PracticeGuide({ open, onClose }: { open: boolean; onClose: () =>
     return () => audio.pause();
   }, [lesson.audio, muted, index]);
   const position = rect ? { left: rect.x - 5, top: rect.y - 5, width: rect.width + 10, height: rect.height + 10 } : undefined;
-  const cardPosition = !wholePage && !thankYou && rect && window.innerWidth > 760 ? {
+  const cardPosition = !wholePage && !centered && rect && window.innerWidth > 760 ? {
     left: rect.x >= 390 ? Math.max(16, rect.x - 385) : Math.min(window.innerWidth - 385, rect.x + rect.width + 20),
     top: Math.max(16, Math.min(window.innerHeight - 240, rect.y + rect.height + 20)),
     bottom: "auto", transform: "none",
@@ -60,9 +61,9 @@ export function PracticeGuide({ open, onClose }: { open: boolean; onClose: () =>
   return <Dialog.Root open={open} onOpenChange={open => { if (!open) onClose(); }}><Dialog.Portal><Dialog.Content className="practice-guide" aria-describedby={undefined} ref={setRoot}>
     <Dialog.Title className="guide-sr-only">Openly practice guide</Dialog.Title>
     <div className={`guide-scene guide-transition-${transition}`}><PracticeScene step={lesson.step} advance={advance} values={values} setValues={setValues} stepEditor={stepEditor} setStepEditor={setStepEditor} /></div>
-    {thankYou || !position ? <div className="guide-shade" aria-hidden="true" /> : <div className={`guide-highlight${wholePage ? " guide-highlight--page" : ""}`} style={wholePage ? undefined : position} aria-hidden="true" />}
-    {rect && !thankYou && <div className="guide-cursor" style={{ left: Math.min(rect.x + rect.width - 12, window.innerWidth - 28), top: Math.min(rect.y + rect.height - 4, window.innerHeight - 28) }} aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M5 2.5v22l6.1-6.1 4.6 10.1 4-1.8-4.6-9.9h9.1z" fill="white" stroke="#111" strokeWidth="1.7" strokeLinejoin="round" /></svg></div>}
-    <section className={`practice-guide-card${thankYou ? " practice-guide-card--center" : ""}`} style={cardPosition} aria-live="polite"><div className={`guide-copy guide-transition-${transition}`}><span className="guide-label">Getting started</span><h2>{lesson.title}</h2><p>{lesson.step === "addWebsite" && stepEditor === "choose" ? "Choose Open a website to add your first step." : lesson.step === "addWebsite" && stepEditor === "website" ? "Enter a website address to add the step automatically." : lesson.caption}</p></div>
+    {centered || !position ? <div className="guide-shade" aria-hidden="true" /> : <div className={`guide-highlight${wholePage ? " guide-highlight--page" : ""}`} style={wholePage ? undefined : position} aria-hidden="true" />}
+    {rect && !centered && <div className="guide-cursor" style={{ left: Math.min(rect.x + rect.width - 12, window.innerWidth - 28), top: Math.min(rect.y + rect.height - 4, window.innerHeight - 28) }} aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M5 2.5v22l6.1-6.1 4.6 10.1 4-1.8-4.6-9.9h9.1z" fill="white" stroke="#111" strokeWidth="1.7" strokeLinejoin="round" /></svg></div>}
+    <section className={`practice-guide-card${centered ? " practice-guide-card--center" : ""}`} style={cardPosition} aria-live="polite"><div className={`guide-copy guide-transition-${transition}`}><span className="guide-label">Getting started</span><h2>{lesson.title}</h2><p>{lesson.step === "addWebsite" && stepEditor === "choose" ? "Choose Open a website to add your first step." : lesson.step === "addWebsite" && stepEditor === "website" ? "Enter a website address to add the step automatically." : lesson.caption}</p></div>
       {lesson.audio && <div className="guide-audio"><audio ref={audioRef} src={lesson.audio} onError={() => setAudioFailed(true)} /><button type="button" onClick={() => setMuted(v => !v)}>{muted ? "Unmute" : "Mute"}</button><button type="button" disabled={muted} onClick={() => { if (audioRef.current) { audioRef.current.currentTime = 0; void audioRef.current.play().catch(() => setAudioFailed(true)); } }}>Replay narration</button>{audioFailed && <span>Audio unavailable; captions are shown.</span>}</div>}
       <div className="guide-controls"><button type="button" className="guide-quiet" disabled={index === 0} onClick={() => setIndex(i => Math.max(i - 1, 0))}>Back</button><button type="button" className="guide-primary" disabled={lesson.step === "addWebsite" && !values.url} onClick={index === lessons.length - 1 ? onClose : advance}>{index === lessons.length - 1 ? "Finish" : "Next"}</button><span>{index + 1} / {lessons.length}</span><button type="button" className="guide-quiet" onClick={onClose}>Skip</button></div>
     </section><div className="guide-practice-note">Practice guide · Your workflows won’t be changed</div>

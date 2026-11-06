@@ -12,7 +12,7 @@ import { Recordings } from "@/components/settings/recordings";
 import { Placeholders } from "@/components/settings/placeholders";
 import { TimezoneSettings } from "@/components/scheduling/timezone-settings";
 
-export type PracticeStep = "create" | "details" | "addWebsite" | "run" | "result" | "back" | "history" | "settings" | "settingsView" | "thanks";
+export type PracticeStep = "welcome" | "create" | "details" | "addWebsite" | "run" | "result" | "back" | "history" | "settings" | "settingsView" | "thanks";
 export type PracticeValues = { name: string; target: "browser" | "windows"; description: string; url: string; click: string };
 type Props = { step: PracticeStep; advance: () => void; values: PracticeValues; setValues: Dispatch<SetStateAction<PracticeValues>>; stepEditor: "closed" | "choose" | "website"; setStepEditor: Dispatch<SetStateAction<"closed" | "choose" | "website">> };
 
