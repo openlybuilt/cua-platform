@@ -54,4 +54,4 @@
 .workflow-create-form > button { width: 100%; }
 
 .workflow-delete-action { color: var(--danger); }
-.workflow-delete-confirm { color: var(--danger); }
+.workflow-delete-confirm { color: var(--danger); border-color: transparent; }
