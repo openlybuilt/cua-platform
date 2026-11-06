@@ -38,3 +38,15 @@ body { font-weight: 400; }
   .workspace-sidebar, .workspace-shell--collapsed .workspace-sidebar { border-color: #e9e9e9; }
   .workspace-content h1, .home-heading h1 { font-size: 29px; }
 }
+.home-intro { margin: 9px 0 0; color: var(--text-muted); font-size: 13px; }
+.home-dashboard { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr); gap: 24px; }
+.home-dashboard .home-section { min-width: 0; margin: 0; }
+.home-dashboard .home-table { min-width: 0; }
+.home-dashboard .home-table:not(.home-workflows) thead tr,
+.home-dashboard .home-table:not(.home-workflows) tbody tr { display: grid; grid-template-columns: minmax(0, 1fr) auto; }
+.home-dashboard .home-table:not(.home-workflows) thead th:nth-child(n + 3) { display: none; }
+.home-dashboard .home-table:not(.home-workflows) tbody td { border-top: 0; padding-bottom: 8px; overflow-wrap: anywhere; }
+.home-dashboard .home-table:not(.home-workflows) tbody tr { border-top: 1px solid #eee; }
+.home-dashboard .home-table:not(.home-workflows) tbody td:nth-child(n + 3) { padding-top: 2px; padding-bottom: 16px; font-size: 12px; }
+.home-dashboard .home-table:not(.home-workflows) td[colspan] { grid-column: 1 / -1; padding-bottom: 17px; }
+@media (max-width: 1050px) { .home-dashboard { grid-template-columns: 1fr; gap: 36px; } }

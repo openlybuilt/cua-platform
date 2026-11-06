@@ -34,8 +34,8 @@ export function WorkflowHome({ active, onCreate, onOpen, onOpenRun, onViewHistor
     return () => { current = false; };
   }, [active, attempt]);
   return <>
-    <header className="home-heading"><h1>Home</h1><button ref={createButtonRef} type="button" className="home-create" onClick={onCreate}><Plus size={17} aria-hidden="true" />Create workflow</button></header>
-    {loading ? <p className="home-message">Loading workspace…</p> : error ? <p role="alert" className="home-message">{error} <button type="button" className="home-link" onClick={() => setAttempt((value) => value + 1)}>Try again</button></p> : <>
+    <header className="home-heading"><div><h1>Home</h1><p className="home-intro">Your workflows, all in one place.</p></div><button ref={createButtonRef} type="button" className="home-create" onClick={onCreate}><Plus size={17} aria-hidden="true" />Create workflow</button></header>
+    {loading ? <p className="home-message">Loading workspace…</p> : error ? <p role="alert" className="home-message">{error} <button type="button" className="home-link" onClick={() => setAttempt((value) => value + 1)}>Try again</button></p> : <div className="home-dashboard">
       <section className="home-section"><div className="home-section-heading"><h2>{onViewHistory ? <button type="button" className="home-section-link" onClick={onViewHistory}>Recent runs</button> : "Recent runs"}</h2></div>
         <div className="home-table-wrap"><table className="home-table"><thead><tr><th>Workflow</th><th>Status</th><th>Result</th><th>When</th></tr></thead><tbody>
           {runs.slice(0, 3).map((run) => <tr key={run.id}><td><button type="button" className="home-workflow" onClick={() => onOpenRun(run)}>{run.workflowName || "Workflow"}</button></td><td><span className={`home-status run-status--${statusTone(run.status)}`}><i className={`run-status-dot--${statusTone(run.status)}`} aria-hidden="true" />{statusLabel(run.status)}</span></td><td>{result(run)}</td><td>{date(run.createdAt)}</td></tr>)}
@@ -48,6 +48,6 @@ export function WorkflowHome({ active, onCreate, onOpen, onOpenRun, onViewHistor
           {!workflows.length && <tr><td colSpan={2}>You haven’t created a workflow yet.</td></tr>}
         </tbody></table></div>
       </section>
-    </>}
+    </div>}
   </>;
 }
