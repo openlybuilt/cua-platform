@@ -15,22 +15,30 @@ import { TimezoneSettings } from "@/components/scheduling/timezone-settings";
 
 export type PracticeStep = "welcome" | "create" | "details" | "addWebsite" | "run" | "result" | "back" | "history" | "settings" | "settingsView" | "thanks";
 export type PracticeValues = { name: string; target: "browser" | "windows"; description: string; step?: Step };
+export type GuideDraft = { url: string; text: string; target: string };
 type Props = {
   step: PracticeStep; advance: () => void; values: PracticeValues; setValues: Dispatch<SetStateAction<PracticeValues>>;
   stepEditor: "closed" | "choose" | "configure"; setStepEditor: Dispatch<SetStateAction<"closed" | "choose" | "configure">>;
+  setDraft: Dispatch<SetStateAction<GuideDraft>>; resetReady: () => void;
   workflow?: Workflow; run?: Run; creating: boolean; createUncertain: boolean; error: string;
   createWorkflow: () => Promise<void>; stepSaved: (definition: Definition) => void; startRun: (workflow: Workflow) => Promise<void>;
 };
 
-export function PracticeScene({ step, advance, values, setValues, setStepEditor, workflow, run, creating, createUncertain, error, createWorkflow, stepSaved, startRun }: Props) {
+export function PracticeScene({ step, advance, values, setValues, setStepEditor, setDraft, resetReady, workflow, run, creating, createUncertain, error, createWorkflow, stepSaved, startRun }: Props) {
   const targets = useExecutionTargets();
   const setValue = (key: "name" | "target" | "description", value: string) => setValues(current => ({ ...current, [key]: value }));
   if ((step === "addWebsite" || step === "run") && workflow) return <div onClickCapture={event => {
     const button = (event.target as HTMLElement).closest("button");
     if (step !== "addWebsite" || !button) return;
     if (button.classList.contains("editor-plus")) setStepEditor("choose");
-    if (button.closest(".step-options") || button.closest(".editor-steps")) { setValues(current => ({ ...current, step: undefined })); setStepEditor("configure"); }
+    if (button.closest(".step-options") || button.closest(".editor-steps")) { setValues(current => ({ ...current, step: undefined })); setDraft({ url: "", text: "", target: "" }); resetReady(); setStepEditor("configure"); }
     if (button.classList.contains("step-close")) setStepEditor("closed");
+  }} onChangeCapture={event => {
+    const input = event.target;
+    if (step !== "addWebsite" || !(input instanceof HTMLInputElement) || !input.closest(".step-fields")) return;
+    const label = input.closest("label")?.textContent ?? "";
+    const key = label.includes("Website URL") ? "url" : label.includes("Text to enter") ? "text" : label.includes("Where should the text go?") ? "target" : undefined;
+    if (key) { resetReady(); setDraft(current => ({ ...current, [key]: input.value })); }
   }}><WorkflowEditor key={workflow.id} workflow={workflow} windowsAvailable={false} onBack={() => {}} onRunStarted={() => {}} onStepSaved={stepSaved} onStepChange={item => { setValues(current => ({ ...current, step: item })); setStepEditor("configure"); }} onRunDirect={startRun} /></div>;
   if ((step === "result" || step === "back") && run) return <RunView initial={run} onBack={advance} />;
   const view = step === "settings" ? "history" : step === "settingsView" || step === "thanks" ? "settings" : "workflows";
