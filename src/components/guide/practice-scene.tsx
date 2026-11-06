@@ -25,6 +25,7 @@ type Props = {
 };
 
 export function PracticeScene({ step, advance, values, setValues, setStepEditor, setDraft, resetReady, workflow, run, onRunUpdate, creating, createUncertain, error, createWorkflow, stepSaved, startRun }: Props) {
+
   const setValue = (key: "name" | "target" | "description", value: string) => setValues(current => ({ ...current, [key]: value }));
   if ((step === "addWebsite" || step === "run") && workflow) return <div onClickCapture={event => {
     const button = (event.target as HTMLElement).closest("button");
@@ -45,6 +46,7 @@ export function PracticeScene({ step, advance, values, setValues, setStepEditor,
     {view === "home" && <WorkflowHome active onCreate={() => { if (step === "create") advance(); }} onOpen={() => {}} onOpenRun={() => {}} />}
     {view === "history" && <RunHistory active onOpen={() => {}} />}
     {view === "settings" && <section className="timezone-settings page-enter"><h1>Settings</h1><section className="guide-settings"><h2>Guide</h2><Button>Open guide</Button></section><h2>Time zone</h2><TimezoneSettings /><Recordings /><Placeholders /></section>}
-    {step === "details" && <div className="guide-create-overlay"><div className="guide-create-dialog dialog-content"><div className="dialog-heading"><div><h2 className="dialog-title">Create a workflow</h2><p className="dialog-description">Start with the basics. You’ll add the steps next.</p></div></div><WorkflowCreateFields name={values.name} description={values.description} target="browser" targets={["browser"]} setName={value => setValue("name", value)} setDescription={value => setValue("description", value)} setTarget={() => {}} disabled={creating || createUncertain} busy={creating} error={error} onSubmit={event => { event.preventDefault(); void createWorkflow(); }} /></div></div>}
+    {step === "details" && <div className="guide-create-overlay"><div className="guide-create-dialog dialog-content"><div className="dialog-heading"><div><h2 className="dialog-title">Create a workflow</h2><p className="dialog-description">Start with the basics. You’ll add the steps next.</p></div></div><WorkflowCreateFields name={values.name} description={values.description} target="browser" targets={["browser"]} provider="Not needed for this example" providers={[{ id: "Not needed for this example", executionTargets: ["browser"] }]} providerStatus="ready" setProvider={() => {}} setName={value => setValue("name", value)} setDescription={value => setValue("description", value)} setTarget={() => {}} disabled={creating || createUncertain} busy={creating} error={error} onSubmit={event => { event.preventDefault(); void createWorkflow(); }} /></div></div>}
+
   </WorkspaceShell>;
 }

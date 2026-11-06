@@ -3,6 +3,7 @@ import { backendRequest } from "@/lib/backend-request";
 
 const routes: { path: RegExp; methods: string[] }[] = [
   { path: /^guide-example-runs$/, methods: ["POST"] },
+  { path: /^provider-capabilities$/, methods: ["GET"] },
   { path: /^settings\/timezone$/, methods: ["GET", "POST"] },
   { path: /^settings\/recordings$/, methods: ["GET", "POST"] },
   { path: /^placeholders$/, methods: ["GET", "POST"] },

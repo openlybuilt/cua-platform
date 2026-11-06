@@ -10,6 +10,7 @@ import { useServiceAvailable } from "@/components/service/service-gate";
 import { request, type Definition, type Step, type Workflow } from "@/lib/workflows/contracts";
 import { StepEditor, stepChoices, stepSummary } from "./step-editor";
 import { useWorkflowDraft } from "./use-workflow-draft";
+import { useProviderCapabilities, defaultProvider, providerName, vmName, type VMType } from "./use-provider-capabilities";
 import { RunDialog } from "@/components/runs/run-dialog";
 import type { Run } from "@/lib/workflows/contracts";
 import { ScheduleDialog } from "@/components/scheduling/schedule-dialog";
@@ -21,6 +22,10 @@ function inputNames(steps: Step[]) {
 
 export function WorkflowEditor({ workflow, windowsAvailable, onBack, onRunStarted, onStepSaved, onStepChange, onRunDirect }: { workflow: Workflow; windowsAvailable: boolean; onBack: () => void; onRunStarted: (run: Run) => void; onStepSaved?: (definition: Definition) => void; onStepChange?: (step: Step) => void; onRunDirect?: (workflow: Workflow) => Promise<void> }) {
   const save = useWorkflowDraft(workflow);
+  const { providers, status: providerStatus } = useProviderCapabilities();
+  const currentTarget = save.draft.executionTarget ?? "browser";
+  const currentProvider = save.draft.provider ?? defaultProvider(currentTarget);
+  const selectedProvider = providers.find((item) => item.id === currentProvider);
   const available = useServiceAvailable();
   const [panel, setPanel] = useState<Panel>();
   const slot = useRef<number | null>(null);
@@ -95,12 +100,21 @@ export function WorkflowEditor({ workflow, windowsAvailable, onBack, onRunStarte
     try { setScheduleWorkflow(await request<Workflow>(`workflows/${workflow.id}`)); }
     catch { setScheduleError("Could not open scheduling. Please try again."); }
   }
-  function changeTarget(value: string) {
-    const next = value as "browser" | "windows";
-    const incompatible = save.draft.steps.some((step) => step.type === "scroll" && (next === "browser" ? "wheelTicks" in step : "pixels" in step));
+  function selectEnvironment(provider: string, target: VMType) {
+    const incompatible = save.draft.steps.some((step) => step.type === "scroll" && (target === "browser" ? "wheelTicks" in step : "pixels" in step));
     if (incompatible) { setDetailsError("Remove incompatible scroll steps before changing the VM type."); return; }
     setDetailsError("");
-    save.update((current) => ({ ...current, executionTarget: next }));
+    save.update((current) => ({ ...current, provider, executionTarget: target }));
+  }
+  function changeProvider(provider: string) {
+    const supported = providers.find((item) => item.id === provider)?.executionTargets ?? [];
+    if (!supported.length) return;
+    selectEnvironment(provider, supported.includes(currentTarget) ? currentTarget : supported[0]!);
+  }
+  function changeTarget(value: string) {
+    const target = value as VMType;
+    if (!selectedProvider?.executionTargets.includes(target)) return;
+    selectEnvironment(currentProvider, target);
   }
   function closeDetails(next: boolean) {
     if (!next && !detailsName.trim()) { setDetailsError("Enter a workflow name."); return; }
@@ -144,11 +158,13 @@ export function WorkflowEditor({ workflow, windowsAvailable, onBack, onRunStarte
     </div>
     {runWorkflow && available && <RunDialog workflow={runWorkflow} onClose={() => setRunWorkflow(undefined)} onStarted={onRunStarted} />}
     {scheduleWorkflow && <ScheduleDialog workflow={scheduleWorkflow} open={available} onOpenChange={(next) => { if (!next) setScheduleWorkflow(undefined); }} returnFocus={() => scheduleButton.current?.focus()} />}
-    <Dialog open={details && available} onOpenChange={closeDetails} title="Workflow details" description="Edit the workflow’s name, description, and VM type.">
+    <Dialog open={details && available} onOpenChange={closeDetails} title="Workflow details" description="Edit the workflow’s name, description, provider, and VM type.">
       <div className="workflow-fields">
         <label>Name<input maxLength={120} value={detailsName} onChange={(event) => { const value = event.target.value; setDetailsName(value); if (value.trim()) { setDetailsError(""); save.update((current) => ({ ...current, name: value.trim() })); } }} /></label>
         <label>Description<textarea maxLength={1000} value={save.draft.description} onChange={(event) => { const value = event.target.value; save.update((current) => ({ ...current, description: value })); }} /></label>
-        <label>VM type<Select label="VM type" value={save.draft.executionTarget ?? "browser"} onChange={changeTarget} options={[{ value: "browser", label: "Browser VM" }, { value: "windows", label: "Computer VM", disabled: !windowsAvailable && save.draft.executionTarget !== "windows" }]} /></label>
+        <label>Provider<Select label="Provider" value={currentProvider} onChange={changeProvider} disabled={!providers.length} options={[...(!selectedProvider ? [{ value: currentProvider, label: `${providerName(currentProvider)} (unavailable)`, disabled: true }] : []), ...providers.map((item) => ({ value: item.id, label: providerName(item.id) }))]} /></label>
+        <label>VM type<Select label="VM type" value={currentTarget} onChange={changeTarget} disabled={!selectedProvider} options={[...(!selectedProvider?.executionTargets.includes(currentTarget) ? [{ value: currentTarget, label: `${vmName(currentTarget)} (unavailable)`, disabled: true }] : []), ...(selectedProvider?.executionTargets ?? []).map((item) => ({ value: item, label: vmName(item) }))]} /></label>
+        {providerStatus === "error" && <p role="alert" className="step-error">Could not load providers. We’ll retry automatically.</p>}
         {detailsError && <p role="alert" className="step-error">{detailsError}</p>}
       </div>
     </Dialog>

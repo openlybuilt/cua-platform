@@ -8,7 +8,7 @@ export type Step =
   | { type: "press_keys"; keys: string[] }
   | { type: "click"; target: string }
   | { type: "click"; x: number; y: number };
-export type Definition = { name: string; description: string; executionTarget?: "browser" | "windows"; inputs: string[]; steps: Step[] };
+export type Definition = { name: string; description: string; executionTarget?: "browser" | "windows"; provider?: string; inputs: string[]; steps: Step[] };
 export type Workflow = { id: string; version: number; definition: Definition; createdAt: string };
 export type Run = { id: string; status: string; example?: boolean; exampleWorkflow?: Workflow; workflowId?: string; workflowName?: string; workflowVersion?: number; createdAt?: string; result?: unknown; liveViewUrl?: string; recordingStatus?: "pending" | "saved" | "failed" | "unavailable" | "deleted"; steps?: { status: string; message?: string }[] };
 export class RequestError extends Error { constructor(message: string, readonly status: number) { super(message); } }
