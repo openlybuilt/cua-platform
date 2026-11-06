@@ -6,6 +6,7 @@
 .home-section + .home-section { margin-top: 52px; }
 .home-section-heading { margin-bottom: 18px; }
 .home-section-heading h2 { margin: 0; font-size: 20px; font-weight: 300; }
+.home-section-link { padding: 0; border: 0; background: transparent; color: inherit; font: inherit; cursor: pointer; }.home-section-link:hover { text-decoration: underline; }
 .home-section-heading span { color: var(--text-muted); font-size: 12px; }
 .home-table-wrap { overflow-x: auto; border: 1px solid #414141; border-radius: var(--radius); background: var(--surface); }
 .home-table { width: 100%; min-width: 630px; border-collapse: collapse; font-size: 13px; text-align: left; }
@@ -15,6 +16,8 @@
 .home-table td[colspan] { text-align: left; }
 .home-workflow { padding: 0; border: 0; background: transparent; color: var(--text); font-size: 14px; text-align: left; cursor: pointer; }
 .home-workflow:hover { text-decoration: underline; }
+.workflow-list-actions { display: flex; justify-content: flex-end; gap: 4px; }
+@media (max-width: 760px) { .workflow-manage-table { min-width: 0; }.workflow-manage-table td { padding: 12px; }.workflow-manage-table .home-workflow, .workflow-manage-table .home-description { overflow-wrap: anywhere; } }
 .home-description { display: block; margin-top: 5px; font-size: 12px; }
 .home-status { display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; }
 .home-status i { width: 7px; height: 7px; border-radius: 50%; background: #a5c8ff; }
