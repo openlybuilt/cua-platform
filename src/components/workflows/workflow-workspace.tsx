@@ -17,8 +17,9 @@ import { PracticeGuide } from "@/components/guide/practice-guide";
 type Screen = { kind: "home" } | { kind: "editor"; workflow: Workflow } | { kind: "run"; run: Run };
 export function WorkflowWorkspace() {
   const [guideOpen, setGuideOpen] = useState(false);
+  const [guideGeneration, setGuideGeneration] = useState(0);
   useEffect(() => { try { setGuideOpen(localStorage.getItem("openly:guide-seen") !== "true"); } catch { setGuideOpen(true); } }, []);
-  function closeGuide() { try { localStorage.setItem("openly:guide-seen", "true"); } catch { /* The guide can still be closed for this session. */ } setGuideOpen(false); }
+  function closeGuide() { try { localStorage.setItem("openly:guide-seen", "true"); } catch { /* The guide can still be closed for this session. */ } setGuideOpen(false); setGuideGeneration(value => value + 1); }
   const [view, setView] = useState<"workflows" | "history" | "settings">("workflows");
   const [createOpen, setCreateOpen] = useState(false);
   const createButtonRef = useRef<HTMLButtonElement>(null);
@@ -28,7 +29,7 @@ export function WorkflowWorkspace() {
   if (screen.kind === "run") return <div className="page-enter"><RunView initial={screen.run} onBack={() => setScreen({ kind: "home" })} /></div>;
   if (screen.kind === "editor") return <div className="page-enter"><WorkflowEditor key={screen.workflow.id} workflow={screen.workflow} onRunStarted={(run) => setScreen({ kind: "run", run })} windowsAvailable={targets.includes("windows")} onBack={() => setScreen({ kind: "home" })} /></div>;
   return <WorkspaceShell view={view} onViewChange={setView}>
-    <div className="workspace-view" hidden={view !== "workflows"}><WorkflowHome createButtonRef={createButtonRef} active={view === "workflows"} onOpenRun={(run) => setScreen({ kind: "run", run })} onCreate={() => setCreateOpen(true)} onOpen={(workflow) => setScreen({ kind: "editor", workflow })} /></div>
+    <div className="workspace-view" hidden={view !== "workflows"}><WorkflowHome key={guideGeneration} createButtonRef={createButtonRef} active={view === "workflows"} onOpenRun={(run) => setScreen({ kind: "run", run })} onCreate={() => setCreateOpen(true)} onOpen={(workflow) => setScreen({ kind: "editor", workflow })} /></div>
     <div className="workspace-view" hidden={view !== "history"}><RunHistory active={view === "history"} onOpen={(run) => setScreen({ kind: "run", run })} /></div>
     {createOpen && <WorkflowCreate targets={targets} returnFocus={() => { const button = createButtonRef.current; if (!button?.isConnected || button.closest("[hidden]")) return false; button.focus(); return true; }} onCreated={(workflow) => { setCreateOpen(false); setScreen({ kind: "editor", workflow }); }} onBack={() => setCreateOpen(false)} />}
     {view === "settings" && <section className="timezone-settings page-enter"><h1>Settings</h1><section className="guide-settings"><h2>Guide</h2><button type="button" onClick={() => setGuideOpen(true)}>Open guide</button></section><h2>Time zone</h2><TimezoneSettings /><Recordings /><Placeholders /></section>}
