@@ -13,6 +13,7 @@ import { Recordings } from "@/components/settings/recordings";
 import { Placeholders } from "@/components/settings/placeholders";
 import { TimezoneSettings } from "@/components/scheduling/timezone-settings";
 import { PracticeGuide } from "@/components/guide/practice-guide";
+import { Button } from "@/components/ui/button";
 
 type Screen = { kind: "home" } | { kind: "editor"; workflow: Workflow } | { kind: "run"; run: Run };
 export function WorkflowWorkspace() {
@@ -32,7 +33,7 @@ export function WorkflowWorkspace() {
     <div className="workspace-view" hidden={view !== "workflows"}><WorkflowHome key={guideGeneration} createButtonRef={createButtonRef} active={view === "workflows"} onOpenRun={(run) => setScreen({ kind: "run", run })} onCreate={() => setCreateOpen(true)} onOpen={(workflow) => setScreen({ kind: "editor", workflow })} /></div>
     <div className="workspace-view" hidden={view !== "history"}><RunHistory active={view === "history"} onOpen={(run) => setScreen({ kind: "run", run })} /></div>
     {createOpen && <WorkflowCreate targets={targets} returnFocus={() => { const button = createButtonRef.current; if (!button?.isConnected || button.closest("[hidden]")) return false; button.focus(); return true; }} onCreated={(workflow) => { setCreateOpen(false); setScreen({ kind: "editor", workflow }); }} onBack={() => setCreateOpen(false)} />}
-    {view === "settings" && <section className="timezone-settings page-enter"><h1>Settings</h1><section className="guide-settings"><h2>Guide</h2><button type="button" onClick={() => setGuideOpen(true)}>Open guide</button></section><h2>Time zone</h2><TimezoneSettings /><Recordings /><Placeholders /></section>}
+    {view === "settings" && <section className="timezone-settings page-enter"><h1>Settings</h1><section className="guide-settings"><h2>Guide</h2><Button onClick={() => setGuideOpen(true)}>Open guide</Button></section><h2>Time zone</h2><TimezoneSettings /><Recordings /><Placeholders /></section>}
     {guideOpen && <PracticeGuide open={available} onClose={closeGuide} />}
   </WorkspaceShell>;
 }

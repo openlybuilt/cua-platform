@@ -12,6 +12,7 @@ import { RunHistory } from "@/components/runs/run-history";
 import { Recordings } from "@/components/settings/recordings";
 import { Placeholders } from "@/components/settings/placeholders";
 import { TimezoneSettings } from "@/components/scheduling/timezone-settings";
+import { Button } from "@/components/ui/button";
 
 export type PracticeStep = "welcome" | "create" | "details" | "addWebsite" | "run" | "result" | "back" | "history" | "settings" | "settingsView" | "thanks";
 export type PracticeValues = { name: string; target: "browser" | "windows"; description: string; step?: Step };
@@ -45,7 +46,7 @@ export function PracticeScene({ step, advance, values, setValues, setStepEditor,
   return <WorkspaceShell view={view} onViewChange={next => { if ((step === "history" && next === "history") || (step === "settings" && next === "settings")) advance(); }}>
     {view === "workflows" && <WorkflowHome active onCreate={() => { if (step === "create") advance(); }} onOpen={() => {}} onOpenRun={() => {}} />}
     {view === "history" && <RunHistory active onOpen={() => {}} />}
-    {view === "settings" && <section className="timezone-settings page-enter"><h1>Settings</h1><section className="guide-settings"><h2>Guide</h2><button type="button">Open guide</button></section><h2>Time zone</h2><TimezoneSettings /><Recordings /><Placeholders /></section>}
+    {view === "settings" && <section className="timezone-settings page-enter"><h1>Settings</h1><section className="guide-settings"><h2>Guide</h2><Button>Open guide</Button></section><h2>Time zone</h2><TimezoneSettings /><Recordings /><Placeholders /></section>}
     {step === "details" && <div className="guide-create-overlay"><div className="guide-create-dialog dialog-content"><div className="dialog-heading"><div><h2 className="dialog-title">Create a workflow</h2><p className="dialog-description">Start with the basics. You’ll add the steps next.</p></div></div><WorkflowCreateFields name={values.name} description={values.description} target="browser" targets={targets.filter(target => target === "browser")} setName={value => setValue("name", value)} setDescription={value => setValue("description", value)} setTarget={() => {}} disabled={creating || createUncertain} busy={creating} error={!targets.includes("browser") ? "A Browser VM provider is required for this guide." : error} onSubmit={event => { event.preventDefault(); if (targets.includes("browser")) void createWorkflow(); }} /></div></div>}
   </WorkspaceShell>;
 }
