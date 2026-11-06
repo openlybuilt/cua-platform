@@ -1,3 +1,9 @@
+const terminalStatuses = new Set(["completed", "failed", "cancelled", "interrupted", "outcome_unknown"]);
+
+export function isRunTerminal(status: string): boolean {
+  return terminalStatuses.has(status);
+}
+
 export function statusTone(status: string): "success" | "error" | "active" | "warning" | "neutral" {
   if (["completed", "succeeded", "success"].includes(status)) return "success";
   if (["failed", "error"].includes(status)) return "error";

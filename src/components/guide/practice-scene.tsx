@@ -21,11 +21,11 @@ type Props = {
   step: PracticeStep; advance: () => void; values: PracticeValues; setValues: Dispatch<SetStateAction<PracticeValues>>;
   stepEditor: "closed" | "choose" | "configure"; setStepEditor: Dispatch<SetStateAction<"closed" | "choose" | "configure">>;
   setDraft: Dispatch<SetStateAction<GuideDraft>>; resetReady: () => void;
-  workflow?: Workflow; run?: Run; creating: boolean; createUncertain: boolean; error: string;
+  workflow?: Workflow; run?: Run; onRunUpdate: (run: Run) => void; creating: boolean; createUncertain: boolean; error: string;
   createWorkflow: () => Promise<void>; stepSaved: (definition: Definition) => void; startRun: (workflow: Workflow) => Promise<void>;
 };
 
-export function PracticeScene({ step, advance, values, setValues, setStepEditor, setDraft, resetReady, workflow, run, creating, createUncertain, error, createWorkflow, stepSaved, startRun }: Props) {
+export function PracticeScene({ step, advance, values, setValues, setStepEditor, setDraft, resetReady, workflow, run, onRunUpdate, creating, createUncertain, error, createWorkflow, stepSaved, startRun }: Props) {
   const targets = useExecutionTargets();
   const setValue = (key: "name" | "target" | "description", value: string) => setValues(current => ({ ...current, [key]: value }));
   if ((step === "addWebsite" || step === "run") && workflow) return <div onClickCapture={event => {
@@ -41,7 +41,7 @@ export function PracticeScene({ step, advance, values, setValues, setStepEditor,
     const key = label.includes("Website URL") ? "url" : label.includes("Text to enter") ? "text" : label.includes("Where should the text go?") ? "target" : undefined;
     if (key) { resetReady(); setDraft(current => ({ ...current, [key]: input.value })); }
   }}><WorkflowEditor key={workflow.id} workflow={workflow} windowsAvailable={false} onBack={() => {}} onRunStarted={() => {}} onStepSaved={stepSaved} onStepChange={item => { setValues(current => ({ ...current, step: item })); setStepEditor("configure"); }} onRunDirect={startRun} /></div>;
-  if ((step === "result" || step === "back") && run) return <RunView initial={run} onBack={advance} />;
+  if ((step === "result" || step === "back") && run) return <RunView initial={run} onBack={advance} onRunUpdate={onRunUpdate} />;
   const view = step === "settings" ? "history" : step === "settingsView" || step === "thanks" ? "settings" : "home";
   return <WorkspaceShell view={view} onViewChange={next => { if ((step === "history" && next === "history") || (step === "settings" && next === "settings")) advance(); }}>
     {view === "home" && <WorkflowHome active onCreate={() => { if (step === "create") advance(); }} onOpen={() => {}} onOpenRun={() => {}} />}
