@@ -19,7 +19,7 @@ function inputNames(steps: Step[]) {
   return [...new Set([...JSON.stringify(steps).matchAll(/\{\{([A-Za-z][A-Za-z0-9_]{0,49})\}\}/g)].map((match) => match[1]!))];
 }
 
-export function WorkflowEditor({ workflow, windowsAvailable, onBack, onRunStarted }: { workflow: Workflow; windowsAvailable: boolean; onBack: () => void; onRunStarted: (run: Run) => void }) {
+export function WorkflowEditor({ workflow, windowsAvailable, onBack, onRunStarted, onStepSaved }: { workflow: Workflow; windowsAvailable: boolean; onBack: () => void; onRunStarted: (run: Run) => void; onStepSaved?: () => void }) {
   const save = useWorkflowDraft(workflow);
   const available = useServiceAvailable();
   const [panel, setPanel] = useState<Panel>();
@@ -70,6 +70,9 @@ export function WorkflowEditor({ workflow, windowsAvailable, onBack, onRunStarte
     } else if (slot.current >= 0 && slot.current < steps.length) steps[slot.current] = step;
     else return;
     replaceSteps(steps);
+  }
+  async function saveStep() {
+    if (await save.flush()) { setPanel(undefined); onStepSaved?.(); }
   }
   async function back() {
     if (leaving) return;
@@ -136,7 +139,7 @@ export function WorkflowEditor({ workflow, windowsAvailable, onBack, onRunStarte
           <button className="editor-plus" type="button" aria-label="Add a step" disabled={save.draft.steps.length >= 30} onClick={() => openPanel()}>+</button><div className="editor-line" /><span className="editor-end">End</span>
         </div>
       </div>
-      {panel && <aside ref={settingsRef} className="editor-settings"><StepEditor key={panel.key} initial={panel.index === undefined ? undefined : save.draft.steps[panel.index]} initialKind={panel.kind} target={save.draft.executionTarget} onChange={changeStep} onClose={() => setPanel(undefined)} /></aside>}
+      {panel && <aside ref={settingsRef} className="editor-settings"><StepEditor key={panel.key} initial={panel.index === undefined ? undefined : save.draft.steps[panel.index]} initialKind={panel.kind} target={save.draft.executionTarget} onChange={changeStep} onClose={() => setPanel(undefined)} onSave={saveStep} /></aside>}
     </div>
     {runWorkflow && available && <RunDialog workflow={runWorkflow} onClose={() => setRunWorkflow(undefined)} onStarted={onRunStarted} />}
     {scheduleWorkflow && <ScheduleDialog workflow={scheduleWorkflow} open={available} onOpenChange={(next) => { if (!next) setScheduleWorkflow(undefined); }} returnFocus={() => scheduleButton.current?.focus()} />}
