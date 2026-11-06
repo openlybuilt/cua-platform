@@ -7,7 +7,7 @@
   --border: #dedede;
   --text: #1c1c1c;
   --text-muted: #656565;
-  --success: #4b4b4b;
+  --success: #287446;
   --danger: #bd3737;
   --warning: #656565;
   --focus: #222;
@@ -49,7 +49,7 @@ body { font-weight: 400; }
 .home-dashboard .home-table:not(.home-workflows) tbody tr { border-top: 1px solid #eee; }
 .home-dashboard .home-table:not(.home-workflows) tbody td:nth-child(n + 3) { padding-top: 2px; padding-bottom: 16px; font-size: 12px; }
 .home-dashboard .home-table:not(.home-workflows) td[colspan] { grid-column: 1 / -1; padding-bottom: 17px; }
-@media (max-width: 1050px) { .home-dashboard { grid-template-columns: 1fr; gap: 36px; } }
+@media (max-width: 820px) { .home-dashboard { grid-template-columns: 1fr; gap: 36px; } }
 .editor-page, .run-page { background: #fafafa; }
 .editor-header, .run-header { background: #fff; border-color: #e8e8e8; }
 .editor-title h1 { font-weight: 600; }
@@ -80,3 +80,5 @@ body { font-weight: 400; }
 .home-status.run-status--active, .run-steps .run-step-status.run-status--active, .run-header .run-status--active, .run-log-row .run-status--active { color: #555; }
 .home-status .run-status-dot--active { background: #555; }
 @media (max-width: 760px) { .editor-layout { padding-top: 0; } .editor-steps, .editor-settings { border-color: #e8e8e8; } }
+
+.practice-guide-card, .guide-practice-note { color: #f5f5f5; }
