@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
-import type { Definition, Run, Workflow } from "@/lib/workflows/contracts";
+import type { Definition, Run, Step, Workflow } from "@/lib/workflows/contracts";
 import { WorkspaceShell } from "@/components/workspace/workspace-shell";
 import { WorkflowHome } from "@/components/workflows/workflow-home";
 import { WorkflowCreateFields } from "@/components/workflows/workflow-create";
@@ -13,26 +13,27 @@ import { Placeholders } from "@/components/settings/placeholders";
 import { TimezoneSettings } from "@/components/scheduling/timezone-settings";
 
 export type PracticeStep = "welcome" | "create" | "details" | "addWebsite" | "run" | "result" | "back" | "history" | "settings" | "settingsView" | "thanks";
-export type PracticeValues = { name: string; target: "browser" | "windows"; description: string; url: string; click: string };
-type Props = { step: PracticeStep; advance: () => void; values: PracticeValues; setValues: Dispatch<SetStateAction<PracticeValues>>; stepEditor: "closed" | "choose" | "website"; setStepEditor: Dispatch<SetStateAction<"closed" | "choose" | "website">> };
+export type PracticeValues = { name: string; target: "browser" | "windows"; description: string; step?: Step };
+type Props = { step: PracticeStep; advance: () => void; values: PracticeValues; setValues: Dispatch<SetStateAction<PracticeValues>>; stepEditor: "closed" | "choose" | "configure"; setStepEditor: Dispatch<SetStateAction<"closed" | "choose" | "configure">> };
 
 export function PracticeScene({ step, advance, values, setValues, stepEditor, setStepEditor }: Props) {
   const [runDefinition, setRunDefinition] = useState<Definition>();
-  const setValue = (key: keyof PracticeValues, value: string) => setValues(current => ({ ...current, [key]: value }));
+  const setValue = (key: "name" | "target" | "description", value: string) => setValues(current => ({ ...current, [key]: value }));
   useEffect(() => {
-    if (step !== "addWebsite" || stepEditor !== "website" || !values.url) return;
+    if (step !== "addWebsite" || stepEditor !== "configure" || !values.step) return;
     const timer = window.setTimeout(() => { setStepEditor("closed"); advance(); }, 500);
     return () => window.clearTimeout(timer);
-  }, [step, stepEditor, values.url, advance, setStepEditor]);
-  const definition: Definition = runDefinition ?? { name: values.name || "Practice workflow", description: values.description, executionTarget: values.target, inputs: [], steps: values.url ? [{ type: "navigate", url: values.url }] : [] };
+  }, [step, stepEditor, values.step, advance, setStepEditor]);
+  const definition: Definition = runDefinition ?? { name: values.name || "Practice workflow", description: values.description, executionTarget: values.target, inputs: [], steps: values.step ? [values.step] : [] };
   const workflow: Workflow = { id: "practice", version: 1, definition, createdAt: new Date().toISOString() };
   const run: Run = { id: "practice", workflowName: definition.name, status: "completed", recordingStatus: "unavailable", result: { message: "Workflow completed" }, createdAt: new Date().toISOString(), steps: definition.steps.map(() => ({ status: "completed" })) };
   if (step === "addWebsite" || step === "run") return <div onClickCapture={event => {
     const button = (event.target as HTMLElement).closest("button");
     if (step !== "addWebsite" || !button) return;
     if (button.classList.contains("editor-plus")) setStepEditor("choose");
-    if (button.closest(".step-options") && button.textContent?.includes("Open a website")) setStepEditor("website");
-  }}><WorkflowEditor workflow={{ ...workflow, definition: { ...definition, steps: step === "run" && values.url ? [{ type: "navigate", url: values.url }] : [] } }} windowsAvailable onBack={() => {}} onRunStarted={() => {}} practice={{ onStep: item => { if (item.type === "navigate") setValue("url", item.url); }, onRun: draft => { setRunDefinition(draft); advance(); } }} /></div>;
+    if (button.closest(".step-options") || button.closest(".editor-steps")) { setValues(current => ({ ...current, step: undefined })); setStepEditor("configure"); }
+    if (button.classList.contains("step-close")) setStepEditor("closed");
+  }}><WorkflowEditor workflow={{ ...workflow, definition: { ...definition, steps: values.step ? [values.step] : [] } }} windowsAvailable onBack={() => {}} onRunStarted={() => {}} practice={{ onStep: item => { setValues(current => ({ ...current, step: item })); setStepEditor("configure"); }, onRun: draft => { setRunDefinition(draft); advance(); } }} /></div>;
   if (step === "result" || step === "back") return <RunView initial={run} onBack={advance} practice={{ workflow }} />;
   const view = step === "settings" ? "history" : step === "settingsView" || step === "thanks" ? "settings" : "workflows";
   return <WorkspaceShell view={view} practice onViewChange={next => { if ((step === "history" && next === "history") || (step === "settings" && next === "settings")) advance(); }}>
