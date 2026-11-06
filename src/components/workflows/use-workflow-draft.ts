@@ -11,7 +11,7 @@ function normalized(value: unknown): unknown {
 }
 const same = (a: Definition, b: Definition) => JSON.stringify(normalized(a)) === JSON.stringify(normalized(b));
 
-export function useWorkflowDraft(initial: Workflow) {
+export function useWorkflowDraft(initial: Workflow, practice = false) {
   const [draft, setDraft] = useState(initial.definition);
   const [status, setStatus] = useState<SaveStatus>("saved");
   const [message, setMessage] = useState("");
@@ -46,7 +46,7 @@ export function useWorkflowDraft(initial: Workflow) {
         const snapshot = draftRef.current;
         if (mounted.current) { setStatus("saving"); setMessage(""); }
         try {
-          savedRef.current = await request<Workflow>(`workflows/${initial.id}/versions`, { body: snapshot, version: savedRef.current.version });
+          savedRef.current = practice ? { ...savedRef.current, definition: snapshot } : await request<Workflow>(`workflows/${initial.id}/versions`, { body: snapshot, version: savedRef.current.version });
           acknowledged.current = snapshot;
         } catch (problem) {
           const stale = problem instanceof RequestError && problem.status === 409;
@@ -61,7 +61,7 @@ export function useWorkflowDraft(initial: Workflow) {
     flight.current = operation;
     void operation.finally(() => { if (flight.current === operation) flight.current = null; });
     return operation;
-  }, [initial.id]);
+  }, [initial.id, practice]);
 
   useEffect(() => {
     if (status !== "pending" || conflict) return;
@@ -69,10 +69,11 @@ export function useWorkflowDraft(initial: Workflow) {
     return () => window.clearTimeout(timer);
   }, [revision, status, conflict, flush]);
   useEffect(() => {
+    if (practice) return;
     const warn = (event: BeforeUnloadEvent) => { if (flight.current || !same(draftRef.current, acknowledged.current)) { event.preventDefault(); event.returnValue = ""; } };
     window.addEventListener("beforeunload", warn);
     return () => window.removeEventListener("beforeunload", warn);
-  }, []);
+  }, [practice]);
   function undo() {
     const previous = history.current.pop();
     if (!previous) return;

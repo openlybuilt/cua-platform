@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { Select } from "@/components/ui/select";
 import { loadTimezone, scheduleRequest } from "@/lib/scheduling/schedules";
-export function TimezoneSettings() {
+export function TimezoneSettings({ practice = false }: { practice?: boolean }) {
   const [timezone, setTimezone] = useState("");
   const [zones, setZones] = useState(["UTC", "America/Los_Angeles", "America/Denver", "America/Chicago", "America/New_York", "Europe/London", "Europe/Paris", "Asia/Tokyo", "Australia/Sydney"]);
   const [saved, setSaved] = useState("");
@@ -12,6 +12,7 @@ export function TimezoneSettings() {
   useEffect(() => {
     let active = true;
     if (typeof Intl.supportedValuesOf === "function") setZones(["UTC", ...Intl.supportedValuesOf("timeZone")]);
+    if (practice) { const zone = Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC"; setTimezone(zone); setSaved(zone); setLoaded(true); return; }
     loadTimezone()
       .then((value) => {
         if (!active) return;
@@ -26,7 +27,7 @@ export function TimezoneSettings() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [practice]);
   async function save() {
     const next = timezone.trim();
     try {
@@ -35,6 +36,7 @@ export function TimezoneSettings() {
       setError("Enter a valid time zone, such as America/Denver.");
       return;
     }
+    if (practice) { setSaved(next); return; }
     setBusy(true);
     setError("");
     try {

@@ -9,19 +9,19 @@ function timestamp(value?: string) {
 function result(run: Run) {
   return run.result && typeof run.result === "object" && "message" in run.result && typeof run.result.message === "string" ? run.result.message : "—";
 }
-export function RunHistory({ active, onOpen }: { active: boolean; onOpen: (run: Run) => void }) {
-  const [runs, setRuns] = useState<Run[]>();
+export function RunHistory({ active, onOpen, practiceRuns }: { active: boolean; onOpen: (run: Run) => void; practiceRuns?: Run[] }) {
+  const [runs, setRuns] = useState<Run[] | undefined>(practiceRuns);
   const [error, setError] = useState("");
   const loaded = useRef(false);
   useEffect(() => {
-    if (!active && loaded.current) return;
+    if (practiceRuns || (!active && loaded.current)) return;
     let current = true;
     setError("");
     request<Run[]>("runs")
       .then((value) => { if (current) { loaded.current = true; setRuns([...value].sort((a, b) => Date.parse(b.createdAt ?? "") - Date.parse(a.createdAt ?? ""))); } })
       .catch(() => { if (current) setError("Could not load run history."); });
     return () => { current = false; };
-  }, [active]);
+  }, [active, practiceRuns]);
   return <>
     <header className="home-heading"><h1>Run history</h1></header>
     <section className="home-section">

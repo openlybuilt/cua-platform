@@ -19,8 +19,8 @@ function inputNames(steps: Step[]) {
   return [...new Set([...JSON.stringify(steps).matchAll(/\{\{([A-Za-z][A-Za-z0-9_]{0,49})\}\}/g)].map((match) => match[1]!))];
 }
 
-export function WorkflowEditor({ workflow, windowsAvailable, onBack, onRunStarted }: { workflow: Workflow; windowsAvailable: boolean; onBack: () => void; onRunStarted: (run: Run) => void }) {
-  const save = useWorkflowDraft(workflow);
+export function WorkflowEditor({ workflow, windowsAvailable, onBack, onRunStarted, practice }: { workflow: Workflow; windowsAvailable: boolean; onBack: () => void; onRunStarted: (run: Run) => void; practice?: { onStep: (step: Step) => void; onRun: (definition: Definition) => void } }) {
+  const save = useWorkflowDraft(workflow, Boolean(practice));
   const available = useServiceAvailable();
   const [panel, setPanel] = useState<Panel>();
   const slot = useRef<number | null>(null);
@@ -62,6 +62,7 @@ export function WorkflowEditor({ workflow, windowsAvailable, onBack, onRunStarte
     setPanel({ key: ++panelKey.current, index, insertAt, kind });
   }
   function changeStep(step: Step) {
+    practice?.onStep(step);
     const steps = [...save.draft.steps];
     if (slot.current === null) {
       if (steps.length >= 30) return;
@@ -80,12 +81,14 @@ export function WorkflowEditor({ workflow, windowsAvailable, onBack, onRunStarte
     if (saved) onBack();
   }
   async function openRun() {
+    if (practice) { practice.onRun(save.draft); return; }
     setScheduleError("");
     if (!await save.flush()) return;
     try { setRunWorkflow(await request<Workflow>(`workflows/${workflow.id}`)); }
     catch { setScheduleError("Could not start the workflow. Please try again."); }
   }
   async function openSchedule() {
+    if (practice) return;
     setScheduleError("");
     if (!await save.flush()) return;
     try { setScheduleWorkflow(await request<Workflow>(`workflows/${workflow.id}`)); }

@@ -3,7 +3,7 @@
 import { Clock3, LayoutGrid, Menu, Settings } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 
-export function WorkspaceShell({ children, view, onViewChange }: { children: ReactNode; view: "workflows" | "history" | "settings"; onViewChange: (view: "workflows" | "history" | "settings") => void }) {
+export function WorkspaceShell({ children, view, onViewChange, practice = false }: { children: ReactNode; view: "workflows" | "history" | "settings"; onViewChange: (view: "workflows" | "history" | "settings") => void; practice?: boolean }) {
   const [collapsed, setCollapsed] = useState(false);
   useEffect(() => {
     try { setCollapsed(localStorage.getItem("openly:sidebar-collapsed") === "true"); } catch { /* Storage is optional. */ }
@@ -11,7 +11,7 @@ export function WorkspaceShell({ children, view, onViewChange }: { children: Rea
   function toggleSidebar() {
     setCollapsed((previous) => {
       const next = !previous;
-      try { localStorage.setItem("openly:sidebar-collapsed", String(next)); } catch { /* Storage is optional. */ }
+      if (!practice) try { localStorage.setItem("openly:sidebar-collapsed", String(next)); } catch { /* Storage is optional. */ }
       return next;
     });
   }

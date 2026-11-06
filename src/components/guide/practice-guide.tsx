@@ -29,16 +29,17 @@ export function PracticeGuide({ open, onClose }: { open: boolean; onClose: () =>
   const audioRef = useRef<HTMLAudioElement>(null);
   const [root, setRoot] = useState<HTMLDivElement | null>(null);
   const lesson = lessons[index]!;
+  const targetSelector = lesson.step === "create" ? ".home-create" : lesson.step === "details" ? ".workflow-create-form input" : lesson.step === "addWebsite" ? stepEditor === "closed" ? ".editor-plus" : stepEditor === "choose" ? ".step-options button:first-child" : ".step-fields input" : lesson.step === "run" ? ".editor-play" : lesson.step === "result" ? ".run-layout" : lesson.step === "back" ? ".run-header button" : lesson.step === "history" ? '[aria-label="Run history"]' : lesson.step === "settings" ? '[aria-label="Settings"]' : ".timezone-settings";
   const advance = useCallback(() => setIndex(i => Math.min(i + 1, lessons.length - 1)), []);
   useLayoutEffect(() => {
-    const target = root?.querySelector<HTMLElement>('[data-guide-target="current"]');
+    const target = root?.querySelector<HTMLElement>(targetSelector);
     if (!target) { setRect(undefined); return; }
     const measure = () => { const r = target.getBoundingClientRect(); setRect({ x: r.left, y: r.top, width: r.width, height: r.height }); };
     measure();
     const observer = new ResizeObserver(measure); observer.observe(target);
     window.addEventListener("resize", measure); window.addEventListener("scroll", measure, true);
     return () => { observer.disconnect(); window.removeEventListener("resize", measure); window.removeEventListener("scroll", measure, true); };
-  }, [index, root, stepEditor]);
+  }, [index, root, stepEditor, targetSelector]);
   useLayoutEffect(() => {
     setAudioFailed(false);
     const audio = audioRef.current;
@@ -60,7 +61,7 @@ export function PracticeGuide({ open, onClose }: { open: boolean; onClose: () =>
     {rect && <div className="guide-cursor" style={{ left: Math.min(rect.x + rect.width - 12, window.innerWidth - 28), top: Math.min(rect.y + rect.height - 4, window.innerHeight - 28) }} aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M5 2.5v22l6.1-6.1 4.6 10.1 4-1.8-4.6-9.9h9.1z" fill="white" stroke="#111" strokeWidth="1.7" strokeLinejoin="round" /></svg></div>}
     <section className="practice-guide-card" style={cardPosition} aria-live="polite"><span className="guide-label">Getting started</span><h2>{lesson.title}</h2><p>{lesson.step === "addWebsite" && stepEditor === "choose" ? "Choose Open a website to add your first step." : lesson.step === "addWebsite" && stepEditor === "website" ? "Enter a website address to add the step automatically." : lesson.caption}</p>
       {lesson.audio && <div className="guide-audio"><audio ref={audioRef} src={lesson.audio} onError={() => setAudioFailed(true)} /><button type="button" onClick={() => setMuted(v => !v)}>{muted ? "Unmute" : "Mute"}</button><button type="button" disabled={muted} onClick={() => { if (audioRef.current) { audioRef.current.currentTime = 0; void audioRef.current.play().catch(() => setAudioFailed(true)); } }}>Replay narration</button>{audioFailed && <span>Audio unavailable; captions are shown.</span>}</div>}
-      <div className="guide-controls"><button type="button" className="guide-quiet" disabled={index === 0} onClick={() => setIndex(i => Math.max(i - 1, 0))}>Back</button><button type="button" className="guide-primary" onClick={index === lessons.length - 1 ? onClose : advance}>{index === lessons.length - 1 ? "Finish" : "Next"}</button><span>{index + 1} / {lessons.length}</span><button type="button" className="guide-quiet" onClick={onClose}>Skip</button></div>
+      <div className="guide-controls"><button type="button" className="guide-quiet" disabled={index === 0} onClick={() => setIndex(i => Math.max(i - 1, 0))}>Back</button><button type="button" className="guide-primary" disabled={lesson.step === "addWebsite" && !values.url} onClick={index === lessons.length - 1 ? onClose : advance}>{index === lessons.length - 1 ? "Finish" : "Next"}</button><span>{index + 1} / {lessons.length}</span><button type="button" className="guide-quiet" onClick={onClose}>Skip</button></div>
     </section><div className="guide-practice-note">Practice guide · Your workflows won’t be changed</div>
   </Dialog.Content></Dialog.Portal></Dialog.Root>;
 }
