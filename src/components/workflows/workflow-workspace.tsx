@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { Run, Workflow } from "@/lib/workflows/contracts";
 import { WorkspaceShell } from "@/components/workspace/workspace-shell";
-import { useExecutionTargets } from "@/components/service/service-gate";
+import { useExecutionTargets, useServiceAvailable } from "@/components/service/service-gate";
 import { WorkflowCreate } from "./workflow-create";
 import { WorkflowEditor } from "./workflow-editor";
 import { WorkflowHome } from "./workflow-home";
@@ -24,6 +24,7 @@ export function WorkflowWorkspace() {
   const createButtonRef = useRef<HTMLButtonElement>(null);
   const [screen, setScreen] = useState<Screen>({ kind: "home" });
   const targets = useExecutionTargets();
+  const available = useServiceAvailable();
   if (screen.kind === "run") return <div className="page-enter"><RunView initial={screen.run} onBack={() => setScreen({ kind: "home" })} /></div>;
   if (screen.kind === "editor") return <div className="page-enter"><WorkflowEditor key={screen.workflow.id} workflow={screen.workflow} onRunStarted={(run) => setScreen({ kind: "run", run })} windowsAvailable={targets.includes("windows")} onBack={() => setScreen({ kind: "home" })} /></div>;
   return <WorkspaceShell view={view} onViewChange={setView}>
@@ -31,6 +32,6 @@ export function WorkflowWorkspace() {
     <div className="workspace-view" hidden={view !== "history"}><RunHistory active={view === "history"} onOpen={(run) => setScreen({ kind: "run", run })} /></div>
     {createOpen && <WorkflowCreate targets={targets} returnFocus={() => { const button = createButtonRef.current; if (!button?.isConnected || button.closest("[hidden]")) return false; button.focus(); return true; }} onCreated={(workflow) => { setCreateOpen(false); setScreen({ kind: "editor", workflow }); }} onBack={() => setCreateOpen(false)} />}
     {view === "settings" && <section className="timezone-settings page-enter"><h1>Settings</h1><section className="guide-settings"><h2>Guide</h2><button type="button" onClick={() => setGuideOpen(true)}>Open guide</button></section><h2>Time zone</h2><TimezoneSettings /><Recordings /><Placeholders /></section>}
-    {guideOpen && <PracticeGuide onClose={closeGuide} />}
+    {guideOpen && <PracticeGuide open={available} onClose={closeGuide} />}
   </WorkspaceShell>;
 }
