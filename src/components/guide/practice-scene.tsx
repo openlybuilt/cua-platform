@@ -39,7 +39,7 @@ export function PracticeScene({ step, advance, values, setValues, setStepEditor,
     const key = label.includes("Website URL") ? "url" : label.includes("Text to enter") ? "text" : label.includes("Where should the text go?") ? "target" : undefined;
     if (key) { resetReady(); setDraft(current => ({ ...current, [key]: input.value })); }
   }}><WorkflowEditor key={workflow.id} workflow={workflow} windowsAvailable={false} onBack={() => {}} onRunStarted={() => {}} onStepSaved={stepSaved} onStepChange={item => { setValues(current => ({ ...current, step: item })); setStepEditor("configure"); }} onRunDirect={startRun} /></div>;
-  if ((step === "result" || step === "back") && run) return <RunView initial={run} onBack={advance} onRunUpdate={onRunUpdate} example={workflow ? { workflow } : undefined} />;
+  if ((step === "result" || step === "back") && run) return <RunView initial={run} onBack={() => { if (step === "back") advance(); }} onRunUpdate={onRunUpdate} example={workflow ? { workflow } : undefined} />;
   const view = step === "settings" ? "history" : step === "settingsView" || step === "thanks" ? "settings" : "home";
   return <WorkspaceShell view={view} onViewChange={next => { if ((step === "history" && next === "history") || (step === "settings" && next === "settings")) advance(); }}>
     {view === "home" && <WorkflowHome active onCreate={() => { if (step === "create") advance(); }} onOpen={() => {}} onOpenRun={() => {}} />}

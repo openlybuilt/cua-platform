@@ -29,7 +29,7 @@ export function WorkflowWorkspace() {
   const [screen, setScreen] = useState<Screen>({ kind: "home" });
   const targets = useExecutionTargets();
   const available = useServiceAvailable();
-  if (screen.kind === "run") return <div className="page-enter"><RunView initial={screen.run} onBack={() => setScreen({ kind: "home" })} /></div>;
+  if (screen.kind === "run") return <div className="page-enter"><RunView initial={screen.run} example={screen.run.example && screen.run.exampleWorkflow ? { workflow: screen.run.exampleWorkflow } : undefined} onBack={() => setScreen({ kind: "home" })} /></div>;
   if (screen.kind === "editor") return <div className="page-enter"><WorkflowEditor key={screen.workflow.id} workflow={screen.workflow} onRunStarted={(run) => setScreen({ kind: "run", run })} windowsAvailable={targets.includes("windows")} onBack={() => setScreen({ kind: "home" })} /></div>;
   return <WorkspaceShell view={view} onViewChange={setView}>
     <div className="workspace-view" hidden={view !== "home"}><WorkflowHome key={guideGeneration} createButtonRef={createButtonRef} active={view === "home"} onOpenRun={(run) => setScreen({ kind: "run", run })} onCreate={() => setCreateOpen(true)} onOpen={(workflow) => setScreen({ kind: "editor", workflow })} onViewHistory={() => setView("history")} onViewWorkflows={() => setView("workflows")} /></div>

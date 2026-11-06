@@ -28,6 +28,11 @@ export function PracticeGuide({ open, onClose }: { open: boolean; onClose: () =>
   const [stepEditor, setStepEditor] = useState<"closed" | "choose" | "configure">("closed");
   const [workflow, setWorkflow] = useState<Workflow>();
   const [run, setRun] = useState<Run>();
+  const [historyError, setHistoryError] = useState("");
+  const [savingHistory, setSavingHistory] = useState(false);
+  const [historySaved, setHistorySaved] = useState(false);
+  const historySavingRef = useRef(false);
+  const historySavedRef = useRef(false);
   const [stage, setStage] = useState<0 | 1>(0);
   const [draft, setDraft] = useState<GuideDraft>({ url: "", text: "", target: "" });
   const [readyForSave, setReadyForSave] = useState(false);
@@ -80,10 +85,25 @@ export function PracticeGuide({ open, onClose }: { open: boolean; onClose: () =>
   async function startRun(current: Workflow) {
     if (!matches(current.definition).complete) throw new Error("The Google example needs both required steps before it can be shown.");
     setWorkflow(current);
-    setRun({ id: "guide-example", status: "running", workflowName: current.definition.name, steps: [{ status: "pending" }, { status: "pending" }] });
+    historySavedRef.current = false;
+    setHistorySaved(false); setHistoryError("");
+    setRun({ id: crypto.randomUUID(), status: "running", workflowId: current.id, workflowVersion: current.version, workflowName: current.definition.name, steps: [{ status: "pending" }, { status: "pending" }] });
     setError("");
     advance();
   }
+  const saveExample = useCallback(async (finished: Run) => {
+    if (historySavingRef.current || historySavedRef.current || !finished.workflowId || !finished.workflowVersion) return;
+    historySavingRef.current = true; setSavingHistory(true); setHistoryError("");
+    try {
+      await request("guide-example-runs", { body: { id: finished.id, workflowId: finished.workflowId, version: finished.workflowVersion } });
+      historySavedRef.current = true; setHistorySaved(true);
+    } catch { setHistoryError("Could not save this example to run history. Try again."); }
+    finally { historySavingRef.current = false; setSavingHistory(false); }
+  }, []);
+  const updateRun = useCallback((next: Run) => {
+    setRun(next);
+    if (next.status === "completed") void saveExample(next);
+  }, [saveExample]);
   useEffect(() => {
     if (lesson.step !== "addWebsite" || stepEditor !== "configure") { setReadyForSave(false); return; }
     let ready = false;
@@ -134,13 +154,13 @@ export function PracticeGuide({ open, onClose }: { open: boolean; onClose: () =>
   } : rect.y + rect.height > window.innerHeight - 260 ? { top: 16, bottom: "auto" } : undefined : undefined;
   return <Dialog.Root open={open} onOpenChange={open => { if (!open) onClose(); }}><Dialog.Portal><Dialog.Content className="practice-guide" aria-describedby={undefined} ref={setRoot}>
     <Dialog.Title className="guide-sr-only">Openly practice guide</Dialog.Title>
-    <div className={`guide-scene guide-transition-${transition}`}><PracticeScene step={lesson.step} advance={advance} values={values} setValues={setValues} stepEditor={stepEditor} setStepEditor={setStepEditor} setDraft={setDraft} resetReady={() => setReadyForSave(false)} workflow={workflow} run={run} onRunUpdate={setRun} creating={creating} createUncertain={createUncertain} error={error} createWorkflow={createWorkflow} stepSaved={stepSaved} startRun={startRun} /></div>
+    <div className={`guide-scene guide-transition-${transition}`}><PracticeScene step={lesson.step} advance={advance} values={values} setValues={setValues} stepEditor={stepEditor} setStepEditor={setStepEditor} setDraft={setDraft} resetReady={() => setReadyForSave(false)} workflow={workflow} run={run} onRunUpdate={updateRun} creating={creating} createUncertain={createUncertain} error={error} createWorkflow={createWorkflow} stepSaved={stepSaved} startRun={startRun} /></div>
     {(centered || (!position && lesson.step !== "addWebsite")) && <div className="guide-shade" aria-hidden="true" />}
     <div className={`guide-highlight${centered || wholePage || !position ? " guide-highlight--hidden" : ""}${lesson.step === "addWebsite" ? " guide-highlight--unshaded" : ""}`} style={position} aria-hidden="true" />
     {rect && !centered && !wholePage && <div className="guide-cursor" style={{ left: Math.min(rect.x + rect.width - 12, window.innerWidth - 28), top: Math.min(rect.y + rect.height - 4, window.innerHeight - 28) }} aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M5 2.5v22l6.1-6.1 4.6 10.1 4-1.8-4.6-9.9h9.1z" fill="white" stroke="#111" strokeWidth="1.7" strokeLinejoin="round" /></svg></div>}
-    <section className={`practice-guide-card${centered ? " practice-guide-card--center" : ""}${lesson.step === "settingsView" ? " practice-guide-card--top-right" : ""}`} style={cardPosition} aria-live="polite"><div className={`guide-copy guide-transition-${transition}`}><h2>{lesson.title}</h2><p>{lesson.step === "addWebsite" ? stepEditor === "closed" ? stage === 0 ? "Click the plus to add Open a website." : "Click the plus to add Enter text." : stepEditor === "choose" ? stage === 0 ? "Choose Open a website." : "Choose Enter text." : readyForSave ? "Great! Click Save step when you’re ready." : stage === 0 ? "Enter https://www.google.com, including the https:// at the beginning." : draft.text !== "hello" ? "Enter hello in the text field." : "Describe the field as the search bar." : lesson.caption}</p>{error && <p className="step-error" role="alert">{error}</p>}</div>
+    <section className={`practice-guide-card${centered ? " practice-guide-card--center" : ""}${lesson.step === "settingsView" ? " practice-guide-card--top-right" : ""}`} style={cardPosition} aria-live="polite"><div className={`guide-copy guide-transition-${transition}`}><h2>{lesson.title}</h2><p>{lesson.step === "addWebsite" ? stepEditor === "closed" ? stage === 0 ? "Click the plus to add Open a website." : "Click the plus to add Enter text." : stepEditor === "choose" ? stage === 0 ? "Choose Open a website." : "Choose Enter text." : readyForSave ? "Great! Click Save step when you’re ready." : stage === 0 ? "Enter https://www.google.com, including the https:// at the beginning." : draft.text !== "hello" ? "Enter hello in the text field." : "Describe the field as the search bar." : lesson.caption}</p>{error && <p className="step-error" role="alert">{error}</p>}{lesson.step === "result" && historyError && <p className="step-error" role="alert">{historyError} <button type="button" onClick={() => { if (run) void saveExample(run); }}>Retry</button></p>}</div>
       {lesson.audio && <div className="guide-audio"><audio ref={audioRef} src={lesson.audio} onError={() => setAudioFailed(true)} /><button type="button" onClick={() => setMuted(v => !v)}>{muted ? "Unmute" : "Mute"}</button><button type="button" disabled={muted} onClick={() => { if (audioRef.current) { audioRef.current.currentTime = 0; void audioRef.current.play().catch(() => setAudioFailed(true)); } }}>Replay narration</button>{audioFailed && <span>Audio unavailable; captions are shown.</span>}</div>}
-      <div className="guide-controls"><button type="button" className="guide-quiet" disabled={index === 0 || creating} onClick={() => setIndex(i => Math.max(i - 1, 0))}>Back</button><button type="button" className="guide-primary" style={{ visibility: lesson.step === "result" && (!run || !isRunTerminal(run.status)) ? "hidden" : "visible" }} disabled={["create", "details", "addWebsite", "run", "back", "settings"].includes(lesson.step) || (lesson.step === "result" && (!run || !isRunTerminal(run.status)))} onClick={index === lessons.length - 1 ? onClose : advance}>{index === lessons.length - 1 ? "Finish" : "Next"}</button><span>{index + 1} / {lessons.length}</span><button type="button" className="guide-skip" disabled={creating} onClick={onClose}>Skip</button></div>
+      <div className="guide-controls"><button type="button" className="guide-quiet" disabled={index === 0 || creating || savingHistory} onClick={() => setIndex(i => Math.max(i - 1, 0))}>Back</button><button type="button" className="guide-primary" style={{ visibility: lesson.step === "result" && (!run || !isRunTerminal(run.status)) ? "hidden" : "visible" }} disabled={["create", "details", "addWebsite", "run", "back", "settings"].includes(lesson.step) || (lesson.step === "result" && (!run || !isRunTerminal(run.status) || savingHistory || !historySaved))} onClick={index === lessons.length - 1 ? onClose : advance}>{index === lessons.length - 1 ? "Finish" : "Next"}</button><span>{index + 1} / {lessons.length}</span><button type="button" className="guide-skip" disabled={creating || savingHistory} onClick={onClose}>Skip</button></div>
     </section><div className="guide-practice-note">Guide · Creates a workflow and shows an example run</div>
   </Dialog.Content></Dialog.Portal></Dialog.Root>;
 }
