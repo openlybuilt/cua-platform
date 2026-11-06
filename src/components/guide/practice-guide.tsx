@@ -8,12 +8,12 @@ import { PracticeScene, type GuideDraft, type PracticeStep, type PracticeValues 
 
 type Lesson = { step: PracticeStep; title: string; caption: string; audio?: string };
 const lessons: Lesson[] = [
-  { step: "welcome", title: "Welcome to Openly", caption: "Let’s build and run a real Browser workflow together. This will create a workflow and use your configured providers." },
+  { step: "welcome", title: "Welcome to Openly", caption: "Let’s build a Browser workflow together, then watch an example run. The example won’t use your providers or credits." },
   { step: "create", title: "Let’s build a workflow", caption: "Start by clicking Create workflow." },
   { step: "details", title: "Give it a name", caption: "Give your workflow a name. We’ll use a Browser VM for this example." },
   { step: "addWebsite", title: "Add your steps", caption: "Add Open a website with https://www.google.com, then click Save step." },
-  { step: "run", title: "Run the workflow", caption: "Once you’ve added your steps, click play to run your workflow." },
-  { step: "result", title: "Watch what happens", caption: "Watch the live VM and follow the logs here as your workflow runs. When it finishes, you can play its recording here if one is available." },
+  { step: "run", title: "Run the workflow", caption: "Once you’ve added your steps, click play to watch an example run." },
+  { step: "result", title: "Watch what happens", caption: "Watch the recorded VM and follow the example logs. This is a previous run, so it won’t use your credits." },
   { step: "back", title: "Head back", caption: "Let’s head back so I can show you where to find your runs." },
   { step: "history", title: "Run history", caption: "Click Run history to see all of your current and previous runs." },
   { step: "settings", title: "Visit Settings", caption: "Next, click Settings. There are a few useful options I want to show you." },
@@ -35,8 +35,6 @@ export function PracticeGuide({ open, onClose }: { open: boolean; onClose: () =>
   const [creating, setCreating] = useState(false);
   const [createUncertain, setCreateUncertain] = useState(false);
   const creatingRef = useRef(false);
-  const startingRef = useRef(false);
-  const runId = useRef("");
   const [rect, setRect] = useState<Rect>();
   const [muted, setMuted] = useState(false);
   const [audioFailed, setAudioFailed] = useState(false);
@@ -80,14 +78,11 @@ export function PracticeGuide({ open, onClose }: { open: boolean; onClose: () =>
     setError(""); setStepEditor("closed"); advance();
   }
   async function startRun(current: Workflow) {
-    if (startingRef.current) return;
-    if (!matches(current.definition).complete) throw new Error("The Google example needs both required steps before it can run.");
-    startingRef.current = true; setError("");
-    try {
-      runId.current ||= crypto.randomUUID();
-      const started = await request<Run>(`workflows/${current.id}/runs`, { body: { id: runId.current, version: current.version, inputs: {}, acknowledgeSecretExposure: false, timeoutMs: 120000 } });
-      setRun(started); advance();
-    } finally { startingRef.current = false; }
+    if (!matches(current.definition).complete) throw new Error("The Google example needs both required steps before it can be shown.");
+    setWorkflow(current);
+    setRun({ id: "guide-example", status: "running", workflowName: current.definition.name, steps: [{ status: "pending" }, { status: "pending" }] });
+    setError("");
+    advance();
   }
   useEffect(() => {
     if (lesson.step !== "addWebsite" || stepEditor !== "configure") { setReadyForSave(false); return; }
@@ -146,6 +141,6 @@ export function PracticeGuide({ open, onClose }: { open: boolean; onClose: () =>
     <section className={`practice-guide-card${centered ? " practice-guide-card--center" : ""}${lesson.step === "settingsView" ? " practice-guide-card--top-right" : ""}`} style={cardPosition} aria-live="polite"><div className={`guide-copy guide-transition-${transition}`}><h2>{lesson.title}</h2><p>{lesson.step === "addWebsite" ? stepEditor === "closed" ? stage === 0 ? "Click the plus to add Open a website." : "Click the plus to add Enter text." : stepEditor === "choose" ? stage === 0 ? "Choose Open a website." : "Choose Enter text." : readyForSave ? "Great! Click Save step when you’re ready." : stage === 0 ? "Enter https://www.google.com, including the https:// at the beginning." : draft.text !== "hello" ? "Enter hello in the text field." : "Describe the field as the search bar." : lesson.caption}</p>{error && <p className="step-error" role="alert">{error}</p>}</div>
       {lesson.audio && <div className="guide-audio"><audio ref={audioRef} src={lesson.audio} onError={() => setAudioFailed(true)} /><button type="button" onClick={() => setMuted(v => !v)}>{muted ? "Unmute" : "Mute"}</button><button type="button" disabled={muted} onClick={() => { if (audioRef.current) { audioRef.current.currentTime = 0; void audioRef.current.play().catch(() => setAudioFailed(true)); } }}>Replay narration</button>{audioFailed && <span>Audio unavailable; captions are shown.</span>}</div>}
       <div className="guide-controls"><button type="button" className="guide-quiet" disabled={index === 0 || creating} onClick={() => setIndex(i => Math.max(i - 1, 0))}>Back</button><button type="button" className="guide-primary" style={{ visibility: lesson.step === "result" && (!run || !isRunTerminal(run.status)) ? "hidden" : "visible" }} disabled={["create", "details", "addWebsite", "run", "back", "settings"].includes(lesson.step) || (lesson.step === "result" && (!run || !isRunTerminal(run.status)))} onClick={index === lessons.length - 1 ? onClose : advance}>{index === lessons.length - 1 ? "Finish" : "Next"}</button><span>{index + 1} / {lessons.length}</span><button type="button" className="guide-skip" disabled={creating} onClick={onClose}>Skip</button></div>
-    </section><div className="guide-practice-note">Guide · Creates a real workflow and run</div>
+    </section><div className="guide-practice-note">Guide · Creates a workflow and shows an example run</div>
   </Dialog.Content></Dialog.Portal></Dialog.Root>;
 }
