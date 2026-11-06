@@ -4,6 +4,7 @@ import "./globals.css";
 import "./components.css";
 import "./workflows.css";
 import "./scheduling.css";
+import "./guide.css";
 
 export const metadata: Metadata = { title: "Openly" };
 

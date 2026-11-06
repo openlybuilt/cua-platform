@@ -1,0 +1,5 @@
+.practice-guide { position: fixed; inset: 0; z-index: 100; background: #000b; display: grid; place-items: center; padding: 20px; }
+.practice-guide-card { max-width: 350px; width: 100%; padding: 22px; background: #19191b; border: 1px solid #515155; border-radius: 10px; }
+.practice-guide-card h2 { margin: 0 0 10px; font-size: 18px; font-weight: 500; }
+.practice-guide-card p { color: #ccc; line-height: 1.5; }
+.practice-guide-card button { border: 1px solid #eee; background: #eee; color: #111; border-radius: 6px; padding: 9px 15px; }
