@@ -9,11 +9,8 @@ import { stepChoices, stepSummary } from "@/components/workflows/step-editor";
 
 type Event = { timestamp: string; kind: string; status: string; stepIndex?: number; stepType?: string; action?: string; durationMs?: number; usage?: { inputTokens: number; outputTokens: number } };
 const exampleEvents: Array<Event & { offset: number }> = [
-  { offset: 0, timestamp: "2026-11-06T21:27:25.668Z", kind: "step", stepIndex: 0, stepType: "navigate", status: "running" },
   { offset: 1.434, timestamp: "2026-11-06T21:27:27.102Z", kind: "step", stepIndex: 0, stepType: "navigate", status: "completed", durationMs: 1434 },
-  { offset: 1.439, timestamp: "2026-11-06T21:27:27.107Z", kind: "step", stepIndex: 1, stepType: "type", status: "running" },
   { offset: 9.805, timestamp: "2026-11-06T21:27:35.473Z", kind: "model", stepIndex: 1, status: "completed", durationMs: 8016, usage: { inputTokens: 3060, outputTokens: 94 } },
-  { offset: 9.805, timestamp: "2026-11-06T21:27:35.473Z", kind: "action", stepIndex: 1, action: "click", status: "failed", durationMs: 0 },
   { offset: 12.704, timestamp: "2026-11-06T21:27:38.372Z", kind: "model", stepIndex: 1, status: "completed", durationMs: 2411, usage: { inputTokens: 3096, outputTokens: 85 } },
   { offset: 15.258, timestamp: "2026-11-06T21:27:40.926Z", kind: "action", stepIndex: 1, action: "click", status: "completed", durationMs: 2554 },
   { offset: 15.702, timestamp: "2026-11-06T21:27:41.370Z", kind: "step", stepIndex: 1, stepType: "type", status: "completed", durationMs: 14263 },
@@ -79,8 +76,8 @@ export function RunView({ initial, onBack, onRunUpdate, example }: { initial: Ru
         </div>
       </section>
       <aside className="run-side">
-        <div className="run-vm"><h2>{example ? "Example recording" : isRunTerminal(run.status) ? "VM screen" : "Live VM"}</h2>
-        {example ? <><video controls autoPlay muted playsInline preload="auto" src="/guide-example.mp4" onTimeUpdate={(event) => updateExample(event.currentTarget.currentTime)} onEnded={() => updateExample(Infinity, true)} onError={() => { setError("The example recording could not be played. You can continue the guide."); updateExample(Infinity, true); }} /><p>Previously recorded example</p></> : !isRunTerminal(run.status) ? <>{run.liveViewUrl ? <iframe title="Live VM" src={run.liveViewUrl} referrerPolicy="no-referrer" /> : <p>Connecting to the VM…</p>}<button className="button" type="button" disabled={busy || run.status === "cancelling"} onClick={() => void stop()}>Stop run</button></> : run.recordingStatus === "saved" ? <video controls preload="metadata" src={`/api/runs/${run.id}/recording`} /> : <p>{run.recordingStatus === "pending" ? "Saving recording…" : run.recordingStatus === "failed" ? "The recording could not be saved." : "No recording available."}</p>}</div>
+        <div className="run-vm"><h2>{example ? "Live VM" : isRunTerminal(run.status) ? "VM screen" : "Live VM"}</h2>
+        {example ? <><video controls autoPlay muted playsInline preload="auto" src="/guide-example.mp4" onTimeUpdate={(event) => updateExample(event.currentTarget.currentTime)} onEnded={() => updateExample(Infinity, true)} onError={() => { setError("The example recording could not be played. You can continue the guide."); updateExample(Infinity, true); }} /></> : !isRunTerminal(run.status) ? <>{run.liveViewUrl ? <iframe title="Live VM" src={run.liveViewUrl} referrerPolicy="no-referrer" /> : <p>Connecting to the VM…</p>}<button className="button" type="button" disabled={busy || run.status === "cancelling"} onClick={() => void stop()}>Stop run</button></> : run.recordingStatus === "saved" ? <video controls preload="metadata" src={`/api/runs/${run.id}/recording`} /> : <p>{run.recordingStatus === "pending" ? "Saving recording…" : run.recordingStatus === "failed" ? "The recording could not be saved." : "No recording available."}</p>}</div>
         <details className="run-log-panel" open={logsOpen} onToggle={(event) => setLogsOpen(event.currentTarget.open)}>
           <summary className="run-log-heading"><span>Logs</span><ChevronDown size={16} aria-hidden="true" /></summary>
           <label className="run-log-search"><Search size={14} aria-hidden="true" /><input type="search" aria-label="Search logs" placeholder="Search logs" value={logQuery} onChange={(event) => setLogQuery(event.target.value)} /></label>
