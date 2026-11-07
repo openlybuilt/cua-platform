@@ -6,20 +6,16 @@ The platform communicates with the backend, which owns persistent data and orche
 
 ## Run locally
 
-Install Node.js 24 and pnpm 11.25.0, and start the backend and agents with their required configuration. Set `BACKEND_URL` to the backend's local HTTP origin, for example `http://127.0.0.1:3000`.
+Install Node.js 24 and pnpm 11.25.0, and start the backend and agents with their required configuration. Set `BACKEND_URL` to the backend's local HTTP origin, for example `http://127.0.0.1:2120`.
 
 ```sh
 pnpm install --frozen-lockfile
 pnpm dev
 ```
 
-The development server binds to `127.0.0.1` and normally uses port `3000`. Since the backend defaults to that port too, choose a different port for the platform, for example:
+The development server binds to `127.0.0.1` and defaults to port `2110`. Set `PORT` or pass `--port` to use a different port.
 
-```sh
-pnpm dev --port 3001
-```
-
-Open `http://127.0.0.1:3001`. `UI_ORIGIN` is optional; when set, it must match the browser's exact origin, including host and port, for write requests. The app displays a service-unavailable screen when required services cannot be reached. Configured providers and their supported VM types are discovered through the backend.
+Open `http://127.0.0.1:2110`. `UI_ORIGIN` is optional; when set, it must match the browser's exact origin, including host and port, for write requests. The app displays a service-unavailable screen when required services cannot be reached. Configured providers and their supported VM types are discovered through the backend.
 
 The application currently uses a local workspace and does not provide user sign-in. The service-to-service tokens remain part of the backend/agents configuration.
 
