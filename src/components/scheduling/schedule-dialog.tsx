@@ -1,7 +1,7 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
-import { request, type Workflow } from "@/lib/workflows/contracts";
+import { request, prewarmPlaceholderNames, type Workflow } from "@/lib/workflows/contracts";
 const api = <T,>(path: string) => request<T>(path);
 import { ScheduleList } from "./schedule-list";
 import { Select } from "@/components/ui/select";
@@ -39,7 +39,7 @@ function secretInfo(workflow: Workflow, placeholders: Placeholder[]) {
     secretNames: used.filter((name) =>
       placeholders.some((item) => item.name === name && item.secret),
     ),
-    missing: used.filter(
+    missing: [...new Set([...used, ...prewarmPlaceholderNames(workflow.definition.prewarm)])].filter(
       (name) => !placeholders.some((item) => item.name === name),
     ),
   };

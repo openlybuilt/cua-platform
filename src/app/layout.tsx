@@ -6,6 +6,7 @@ import "./workflows.css";
 import "./scheduling.css";
 import "./guide.css";
 import "./light-theme.css";
+import "./prewarm.css";
 
 export const metadata: Metadata = { title: "Openly" };
 
