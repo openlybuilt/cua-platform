@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Dialog } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { request, type Run, type Workflow } from "@/lib/workflows/contracts";
+import { request, prewarmPlaceholderNames, type Run, type Workflow } from "@/lib/workflows/contracts";
 
 type Placeholder = { name: string; secret: boolean };
 export function RunDialog({ workflow, onClose, onStarted }: { workflow: Workflow; onClose: () => void; onStarted: (run: Run) => void }) {
@@ -15,13 +15,13 @@ export function RunDialog({ workflow, onClose, onStarted }: { workflow: Workflow
   const runId = useRef<string>("");
   const [error, setError] = useState("");
   useEffect(() => { let active = true; request<Placeholder[]>("placeholders").then((value) => { if (active) setPlaceholders(value); }).catch(() => { if (active) setError("Could not load saved values."); }); return () => { active = false; }; }, []);
-  const missing = workflow.definition.inputs.filter((name) => !placeholders?.some((item) => item.name === name));
+  const missing = [...new Set([...workflow.definition.inputs, ...prewarmPlaceholderNames(workflow.definition.prewarm)])].filter((name) => !placeholders?.some((item) => item.name === name));
   const hasSecrets = workflow.definition.inputs.some((name) => placeholders?.find((item) => item.name === name)?.secret ?? (secrets[name] !== false));
   async function start() {
     setBusy(true); setError("");
     try {
       for (const name of missing) { const saved = await request<Placeholder>("placeholders", { body: { name, value: values[name], secret: secrets[name] !== false, createOnly: true } }); setPlaceholders((current) => [...(current ?? []), saved]); }
-      const timeoutMs = Math.min(3600000, 120000 + Math.ceil(workflow.definition.steps.reduce((total, step) => total + (step.type === "wait" ? step.seconds * 1000 : 0), 0)));
+      const timeoutMs = Math.min(3600000, 120000 + Math.ceil(workflow.definition.steps.reduce((total, step) => total + (step.type === "wait" ? step.seconds * 1000 : 0), 0)) + (workflow.definition.prewarm?.reduce((total, step) => total + (step.type === "wait_for" ? step.timeout : 30000), 0) ?? 0));
       runId.current ||= crypto.randomUUID();
       const run = await request<Run>(`workflows/${workflow.id}/runs`, { body: { id: runId.current, version: workflow.version, inputs: {}, acknowledgeSecretExposure: acknowledged, timeoutMs } });
       onStarted(run);

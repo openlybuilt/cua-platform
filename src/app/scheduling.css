@@ -140,6 +140,7 @@
 .run-logs li + li { border-top: 1px solid var(--border); }
 .run-log-row { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
 .run-log-row strong { min-width: 0; overflow-wrap: anywhere; font-size: 12px; font-weight: 500; }
+.run-log-prewarming { color: #6938a5; font-weight: 700; }
 .run-log-row time { float: none; flex: none; color: var(--text-muted); font-size: 11px; }
 .run-log-json summary { display: inline-flex; align-items: center; gap: 4px; margin-top: 4px; color: var(--text-muted); font-size: 11px; }
 .run-log-json summary:hover { color: var(--text); }
