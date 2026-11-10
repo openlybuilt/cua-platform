@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { ChevronDown, Search } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { ChevronDown, ExternalLink, Maximize2, Search } from "lucide-react";
+import { Dialog } from "@/components/ui/dialog";
 import { request, type Run, type Workflow } from "@/lib/workflows/contracts";
 import { RunLoadingState } from "./run-loading-state";
 import { isRunTerminal, statusLabel, statusTone } from "./run-status";
@@ -30,6 +31,12 @@ export function RunView({ initial, onBack, onRunUpdate, example }: { initial: Ru
   const [logsOpen, setLogsOpen] = useState(true);
   const [logQuery, setLogQuery] = useState("");
   const [busy, setBusy] = useState(false);
+  const vmExpandRef = useRef<HTMLButtonElement>(null);
+  const [vmDialogOpen, setVmDialogOpen] = useState(false);
+  const liveAvailable = !example && !isRunTerminal(run.status) && !!run.liveViewUrl;
+  useEffect(() => {
+    if (!liveAvailable) setVmDialogOpen(false);
+  }, [liveAvailable]);
   useEffect(() => { if (example) return; let active = true; if (run.workflowId && run.workflowVersion) void request<Workflow>(`workflows/${run.workflowId}/versions/${run.workflowVersion}`).then((value) => { if (active) setWorkflow(value); }).catch(() => { if (active) setError("Could not load the workflow version."); }); return () => { active = false; }; }, [run.workflowId, run.workflowVersion, example]);
   useEffect(() => { if (example) return; let active = true; let timer: number | undefined; async function refresh() { try { const next = await request<Run>(`runs/${initial.id}`); if (!active) return; setRun(next); onRunUpdate?.(next); if (!isRunTerminal(next.status) || next.recordingStatus === "pending") timer = window.setTimeout(refresh, 1500); } catch { if (active) { setError("Run status is temporarily unavailable."); timer = window.setTimeout(refresh, 5000); } } } void refresh(); return () => { active = false; if (timer) window.clearTimeout(timer); }; }, [initial.id, onRunUpdate, example]);
   useEffect(() => { if (example) return; let active = true; let timer: number | undefined; async function refresh() { try { const logs = await request<Event[]>(`runs/${initial.id}/events`); if (active) { setEvents(logs); setLogsError(false); } } catch { if (active) setLogsError(true); } if (active && !isRunTerminal(run.status)) timer = window.setTimeout(refresh, 1500); } void refresh(); return () => { active = false; if (timer) window.clearTimeout(timer); }; }, [initial.id, run.status, example]);
@@ -81,8 +88,11 @@ export function RunView({ initial, onBack, onRunUpdate, example }: { initial: Ru
         </div>
       </section>
       <aside className="run-side">
-        <div className="run-vm"><h2>{example ? example.history ? "Recording" : "Live VM" : isRunTerminal(run.status) ? "VM screen" : "Live VM"}</h2>
-        {example ? <><video controls autoPlay={!example.history} muted={!example.history} playsInline preload="metadata" src="/guide-example.mp4" onTimeUpdate={(event) => { if (!example.history) updateExample(event.currentTarget.currentTime); }} onEnded={() => { if (!example.history) updateExample(Infinity, true); }} onError={() => { setError(example.history ? "The example recording could not be played." : "The example recording could not be played. You can continue the guide."); if (!example.history) updateExample(Infinity, true); }} /></> : !isRunTerminal(run.status) ? <>{run.liveViewUrl ? <iframe title="Live VM" src={run.liveViewUrl} referrerPolicy="no-referrer" /> : <p>Connecting to the VM…</p>}<button className="button" type="button" disabled={busy || run.status === "cancelling"} onClick={() => void stop()}>Stop run</button></> : run.recordingStatus === "saved" ? <video controls preload="metadata" src={`/api/runs/${run.id}/recording`} /> : <p>{run.recordingStatus === "pending" ? "Saving recording…" : run.recordingStatus === "failed" ? "The recording could not be saved." : "No recording available."}</p>}</div>
+        <div className="run-vm"><div className="run-vm-heading"><h2>{example ? example.history ? "Recording" : "Live VM" : isRunTerminal(run.status) ? "VM screen" : "Live VM"}</h2>{liveAvailable && <div className="run-vm-actions"><a href={run.liveViewUrl} target="_blank" rel="noopener noreferrer" referrerPolicy="no-referrer">VM link <ExternalLink size={14} aria-hidden="true" /></a><button ref={vmExpandRef} type="button" className="run-vm-fullscreen" onClick={() => setVmDialogOpen(true)}><Maximize2 size={16} aria-hidden="true" />Full screen</button></div>}</div>
+        {example ? <><video controls autoPlay={!example.history} muted={!example.history} playsInline preload="metadata" src="/guide-example.mp4" onTimeUpdate={(event) => { if (!example.history) updateExample(event.currentTarget.currentTime); }} onEnded={() => { if (!example.history) updateExample(Infinity, true); }} onError={() => { setError(example.history ? "The example recording could not be played." : "The example recording could not be played. You can continue the guide."); if (!example.history) updateExample(Infinity, true); }} /></> : !isRunTerminal(run.status) ? <>{run.liveViewUrl ? !vmDialogOpen && <iframe title="Live VM" src={run.liveViewUrl} referrerPolicy="no-referrer" /> : <p>Connecting to the VM…</p>}<button className="button" type="button" disabled={busy || run.status === "cancelling"} onClick={() => void stop()}>Stop run</button></> : run.recordingStatus === "saved" ? <video controls preload="metadata" src={`/api/runs/${run.id}/recording`} /> : <p>{run.recordingStatus === "pending" ? "Saving recording…" : run.recordingStatus === "failed" ? "The recording could not be saved." : "No recording available."}</p>}</div>
+        <Dialog open={vmDialogOpen && liveAvailable} onOpenChange={setVmDialogOpen} title="Live VM" className="run-vm-dialog" returnFocus={() => { if (!vmExpandRef.current?.isConnected) return false; vmExpandRef.current.focus(); return true; }}>
+          {run.liveViewUrl && <iframe title="Expanded live VM" src={run.liveViewUrl} referrerPolicy="no-referrer" />}
+        </Dialog>
         <details className="run-log-panel" open={logsOpen} onToggle={(event) => setLogsOpen(event.currentTarget.open)}>
           <summary className="run-log-heading"><span>Logs</span><ChevronDown size={16} aria-hidden="true" /></summary>
           <label className="run-log-search"><Search size={14} aria-hidden="true" /><input type="search" aria-label="Search logs" placeholder="Search logs" value={logQuery} onChange={(event) => setLogQuery(event.target.value)} /></label>
