@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import type { PrewarmStep } from "@/lib/workflows/contracts";
 import { Select } from "@/components/ui/select";
+import { Dropdown } from "@/components/ui/dropdown";
 type Placeholder = { name: string; secret: boolean };
 
 const labels: Record<PrewarmStep["type"], string> = {
@@ -76,11 +77,12 @@ export function PrewarmEditor({
 }) {
   const [steps, setSteps] = useState<PrewarmStep[]>(() => initial ?? []);
   const [selected, setSelected] = useState(0);
-  const [newType, setNewType] = useState<PrewarmStep["type"]>("goto");
   const [error, setError] = useState("");
   useEffect(() => {
     setSteps(initial ?? []);
-    setSelected((current) => Math.min(current, Math.max(0, (initial?.length ?? 0) - 1)));
+    setSelected((current) =>
+      Math.min(current, Math.max(0, (initial?.length ?? 0) - 1)),
+    );
   }, [initial]);
   const dirty = JSON.stringify(steps) !== JSON.stringify(initial ?? []);
   useEffect(() => {
@@ -153,26 +155,22 @@ export function PrewarmEditor({
               </li>
             ))}
           </ol>
-          <label htmlFor="prewarm-add-type">Step type</label>
-          <Select
-            id="prewarm-add-type"
-            label="Step type"
-            value={newType}
-            onChange={(value) => setNewType(value as PrewarmStep["type"])}
-            options={Object.entries(labels).map(([value, label]) => ({ value, label }))}
-          />
-          <button
-            type="button"
-            className="button button--secondary prewarm-add"
-            disabled={steps.length >= 30}
-            onClick={() => {
-              setSteps([...steps, blankStep(newType)]);
-              setSelected(steps.length);
-              setError("");
-            }}
-          >
-            ＋ Add step
-          </button>
+          <div className="prewarm-add">
+            <Dropdown
+              label="＋ Add step"
+              disabled={steps.length >= 30}
+              items={(
+                Object.entries(labels) as [PrewarmStep["type"], string][]
+              ).map(([type, label]) => ({
+                label,
+                onSelect: () => {
+                  setSteps([...steps, blankStep(type)]);
+                  setSelected(steps.length);
+                  setError("");
+                },
+              }))}
+            />
+          </div>
         </div>
         <div className="prewarm-form">
           {step ? (
@@ -232,8 +230,27 @@ export function PrewarmEditor({
                   <Select
                     label="Placeholder"
                     value={step.placeholder}
-                    onChange={(value) => update({ ...step, placeholder: value })}
-                    options={[{ value: "", label: "Select a placeholder" }, ...(step.placeholder && !placeholders.some(item => item.name === step.placeholder) ? [{ value: step.placeholder, label: `${step.placeholder} · Missing` }] : []), ...placeholders.map((item) => ({ value: item.name, label: `${item.name}${item.secret ? " · Secret" : ""}` }))]}
+                    onChange={(value) =>
+                      update({ ...step, placeholder: value })
+                    }
+                    options={[
+                      { value: "", label: "Select a placeholder" },
+                      ...(step.placeholder &&
+                      !placeholders.some(
+                        (item) => item.name === step.placeholder,
+                      )
+                        ? [
+                            {
+                              value: step.placeholder,
+                              label: `${step.placeholder} · Missing`,
+                            },
+                          ]
+                        : []),
+                      ...placeholders.map((item) => ({
+                        value: item.name,
+                        label: `${item.name}${item.secret ? " · Secret" : ""}`,
+                      })),
+                    ]}
                   />
                   <small>
                     Secret values stay hidden while you edit this step.
