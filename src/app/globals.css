@@ -42,7 +42,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .workspace-shell { min-height: 100dvh; display: grid; grid-template-columns: 204px minmax(0, 1fr); background: #000; transition: grid-template-columns 220ms ease; }
 .workspace-shell--collapsed { grid-template-columns: 68px minmax(0, 1fr); }
 .workspace-sidebar { position: relative; display: flex; flex-direction: column; padding: 18px 16px 32px; border-right: 1px solid #343434; }
-.workspace-brand { display: flex; justify-content: center; align-items: center; height: 36px; margin: 0 0 28px; color: var(--text); font-size: 20px; font-weight: 400; letter-spacing: -.03em; }
+.workspace-brand { display: flex; justify-content: center; align-items: center; height: 36px; margin: 0 0 28px; color: var(--text); font-size: 20px; font-weight: 400; letter-spacing: -.03em; text-decoration: none; }
 .workspace-sidebar-toggle { position: absolute; z-index: 3; top: 16px; left: 14px; display: grid; place-items: center; width: 32px; height: 32px; padding: 0; border: 0; border-radius: var(--radius); background: transparent; color: var(--text-muted); cursor: pointer; }
 .workspace-sidebar-toggle:hover { background: var(--surface-hover); color: #fff; }
 .workspace-shell--collapsed .workspace-sidebar { padding: 56px 10px 32px; }
