@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { GripVertical } from "lucide-react";
 import type { PrewarmStep } from "@/lib/workflows/contracts";
 import { Select } from "@/components/ui/select";
 import { Dropdown } from "@/components/ui/dropdown";
@@ -10,7 +11,7 @@ const labels: Record<PrewarmStep["type"], string> = {
   goto: "Open a website",
   fill: "Fill a field",
   click: "Click an element",
-  wait_for: "Wait for signed-in screen",
+  wait_for: "Wait",
 };
 function blankStep(type: PrewarmStep["type"]): PrewarmStep {
   if (type === "goto") return { type, url: "" };
@@ -26,7 +27,7 @@ function problem(steps: PrewarmStep[], placeholders: Placeholder[]): string {
     steps[0].type !== "goto" ||
     steps.at(-1)?.type !== "wait_for"
   )
-    return "Start with Open a website and finish with Wait for signed-in screen.";
+    return "Start with Open a website and finish with Wait.";
   for (const step of steps) {
     if (step.type === "goto") {
       try {
@@ -77,6 +78,10 @@ export function PrewarmEditor({
 }) {
   const [steps, setSteps] = useState<PrewarmStep[]>(() => initial ?? []);
   const [selected, setSelected] = useState(0);
+  const dragIndex = useRef<number | null>(null);
+  const listRef = useRef<HTMLOListElement>(null);
+  const [dropTarget, setDropTarget] = useState<number | null>(null);
+  const [announcement, setAnnouncement] = useState("");
   const [error, setError] = useState("");
   useEffect(() => {
     setSteps(initial ?? []);
@@ -95,13 +100,28 @@ export function PrewarmEditor({
     );
     setError("");
   }
-  function move(offset: number) {
-    const to = selected + offset;
-    if (to < 0 || to >= steps.length) return;
+  function move(from: number, to: number, restoreFocus = false) {
+    if (to < 0 || to >= steps.length || from === to) return;
     const next = [...steps];
-    [next[selected], next[to]] = [next[to], next[selected]];
+    const [item] = next.splice(from, 1);
+    next.splice(to, 0, item!);
     setSteps(next);
-    setSelected(to);
+    setSelected((current) =>
+      current === from
+        ? to
+        : from < current && current <= to
+          ? current - 1
+          : to <= current && current < from
+            ? current + 1
+            : current,
+    );
+    setAnnouncement(`Step moved to position ${to + 1} of ${steps.length}.`);
+    if (restoreFocus)
+      requestAnimationFrame(() =>
+        listRef.current
+          ?.querySelector<HTMLButtonElement>(`[data-prewarm-handle="${to}"]`)
+          ?.focus(),
+      );
     setError("");
   }
   function save() {
@@ -141,12 +161,67 @@ export function PrewarmEditor({
               Add steps to sign in before your workflow starts.
             </p>
           )}
-          <ol>
+          <ol ref={listRef}>
             {steps.map((item, index) => (
-              <li key={index}>
+              <li
+                key={index}
+                data-prewarm-step={index}
+                className={dropTarget === index ? "prewarm-drop-target" : ""}
+              >
                 <button
                   type="button"
-                  className={index === selected ? "selected" : ""}
+                  className="prewarm-drag"
+                  data-prewarm-handle={index}
+                  aria-label={`Reorder step ${index + 1}. Drag or use the up and down arrow keys.`}
+                  onKeyDown={(event) => {
+                    if (event.key === "ArrowUp" || event.key === "ArrowDown") {
+                      event.preventDefault();
+                      move(
+                        index,
+                        index + (event.key === "ArrowUp" ? -1 : 1),
+                        true,
+                      );
+                    }
+                  }}
+                  onPointerDown={(event) => {
+                    if (event.button !== 0) return;
+                    dragIndex.current = index;
+                    event.currentTarget.setPointerCapture(event.pointerId);
+                  }}
+                  onPointerMove={(event) => {
+                    if (dragIndex.current === null) return;
+                    const target = document
+                      .elementFromPoint(event.clientX, event.clientY)
+                      ?.closest<HTMLElement>("[data-prewarm-step]");
+                    const targetIndex = target
+                      ? Number(target.dataset.prewarmStep)
+                      : null;
+                    setDropTarget(
+                      targetIndex !== dragIndex.current ? targetIndex : null,
+                    );
+                  }}
+                  onPointerUp={(event) => {
+                    const from = dragIndex.current;
+                    const target = document
+                      .elementFromPoint(event.clientX, event.clientY)
+                      ?.closest<HTMLElement>("[data-prewarm-step]");
+                    const to = target
+                      ? Number(target.dataset.prewarmStep)
+                      : null;
+                    dragIndex.current = null;
+                    setDropTarget(null);
+                    if (from !== null && to !== null) move(from, to);
+                  }}
+                  onPointerCancel={() => {
+                    dragIndex.current = null;
+                    setDropTarget(null);
+                  }}
+                >
+                  <GripVertical size={15} aria-hidden="true" />
+                </button>
+                <button
+                  type="button"
+                  className={`prewarm-step${index === selected ? " selected" : ""}`}
                   aria-current={index === selected ? "step" : undefined}
                   onClick={() => setSelected(index)}
                 >
@@ -155,6 +230,9 @@ export function PrewarmEditor({
               </li>
             ))}
           </ol>
+          <span className="prewarm-announcement" aria-live="polite">
+            {announcement}
+          </span>
           <div className="prewarm-add">
             <Dropdown
               label="＋ Add step"
@@ -278,22 +356,6 @@ export function PrewarmEditor({
                 <span>
                   Step {selected + 1} of {steps.length}
                 </span>
-                <button
-                  type="button"
-                  className="button button--secondary"
-                  disabled={selected === 0}
-                  onClick={() => move(-1)}
-                >
-                  Move up
-                </button>
-                <button
-                  type="button"
-                  className="button button--secondary"
-                  disabled={selected === steps.length - 1}
-                  onClick={() => move(1)}
-                >
-                  Move down
-                </button>
               </div>
             </>
           ) : (
@@ -335,7 +397,7 @@ export function PrewarmEditor({
               disabled={!dirty || loading || !!loadError}
               onClick={save}
             >
-              Save setup
+              Save
             </button>
           </div>
         </div>

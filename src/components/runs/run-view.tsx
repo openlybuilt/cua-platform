@@ -8,6 +8,11 @@ import { isRunTerminal, statusLabel, statusTone } from "./run-status";
 import { stepChoices, stepSummary } from "@/components/workflows/step-editor";
 
 type Event = { timestamp: string; kind: string; status: string; stepIndex?: number; stepType?: string; action?: string; durationMs?: number; usage?: { inputTokens: number; outputTokens: number } };
+const prewarmLabels: Record<string, string> = { goto: "Open a website", fill: "Fill a field", click: "Click an element", wait_for: "Wait" };
+function eventLabel(event: Event): string {
+  if (event.kind === "prewarming") return `Prewarming: ${prewarmLabels[event.stepType ?? ""] ?? "Step"}`;
+  return event.kind === "step" ? event.stepType ?? "Step" : event.action ?? event.kind;
+}
 const exampleEvents: Array<Event & { offset: number }> = [
   { offset: 1.434, timestamp: "2026-11-06T21:27:27.102Z", kind: "step", stepIndex: 0, stepType: "navigate", status: "completed", durationMs: 1434 },
   { offset: 9.805, timestamp: "2026-11-06T21:27:35.473Z", kind: "model", stepIndex: 1, status: "completed", durationMs: 8016, usage: { inputTokens: 3060, outputTokens: 94 } },
@@ -40,7 +45,7 @@ export function RunView({ initial, onBack, onRunUpdate, example }: { initial: Ru
   const query = logQuery.trim().toLowerCase();
   const matchingEvents = events?.filter((event) => {
     const time = Number.isNaN(Date.parse(event.timestamp)) ? "" : new Date(event.timestamp).toLocaleTimeString();
-    return `${JSON.stringify(event)} ${statusLabel(event.status)} ${time}`.toLowerCase().includes(query);
+    return `${eventLabel(event)} ${JSON.stringify(event)} ${statusLabel(event.status)} ${time}`.toLowerCase().includes(query);
   });
   function updateExample(seconds: number, finished = false) {
     setEvents(exampleEvents.filter((event) => event.offset <= seconds).map(({ offset: _offset, ...event }) => event));
@@ -81,7 +86,7 @@ export function RunView({ initial, onBack, onRunUpdate, example }: { initial: Ru
         <details className="run-log-panel" open={logsOpen} onToggle={(event) => setLogsOpen(event.currentTarget.open)}>
           <summary className="run-log-heading"><span>Logs</span><ChevronDown size={16} aria-hidden="true" /></summary>
           <label className="run-log-search"><Search size={14} aria-hidden="true" /><input type="search" aria-label="Search logs" placeholder="Search logs" value={logQuery} onChange={(event) => setLogQuery(event.target.value)} /></label>
-          {logsError ? <p className="run-log-message">Logs are temporarily unavailable.</p> : events === undefined ? <p className="run-log-message">Loading logs…</p> : !events.length ? <p className="run-log-message">No logs available for this run.</p> : !matchingEvents?.length ? <p className="run-log-message">No logs match your search.</p> : <ol className="run-logs">{[...matchingEvents].reverse().map((event, index) => <li key={`${event.timestamp}-${index}`}><div className="run-log-row"><strong>{event.kind === "step" ? event.stepType ?? "Step" : event.action ?? event.kind}: <span className={`run-status--${statusTone(event.status)}`}>{statusLabel(event.status).toLowerCase()}</span></strong><time dateTime={event.timestamp}>{Number.isNaN(Date.parse(event.timestamp)) ? "" : new Date(event.timestamp).toLocaleTimeString()}</time></div><details className="run-log-json"><summary>View JSON <ChevronDown size={12} aria-hidden="true" /></summary><pre>{JSON.stringify(event, null, 2)}</pre></details></li>)}</ol>}
+          {logsError ? <p className="run-log-message">Logs are temporarily unavailable.</p> : events === undefined ? <p className="run-log-message">Loading logs…</p> : !events.length ? <p className="run-log-message">No logs available for this run.</p> : !matchingEvents?.length ? <p className="run-log-message">No logs match your search.</p> : <ol className="run-logs">{[...matchingEvents].reverse().map((event, index) => <li key={`${event.timestamp}-${index}`}><div className="run-log-row"><strong>{eventLabel(event)}: <span className={`run-status--${statusTone(event.status)}`}>{statusLabel(event.status).toLowerCase()}</span></strong><time dateTime={event.timestamp}>{Number.isNaN(Date.parse(event.timestamp)) ? "" : new Date(event.timestamp).toLocaleTimeString()}</time></div><details className="run-log-json"><summary>View JSON <ChevronDown size={12} aria-hidden="true" /></summary><pre>{JSON.stringify(event, null, 2)}</pre></details></li>)}</ol>}
         </details>
       </aside>
     </main>

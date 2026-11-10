@@ -76,7 +76,30 @@
   margin: 20px 0;
   padding: 0;
 }
-.prewarm-list li button {
+.prewarm-list li {
+  display: flex;
+  align-items: center;
+  border-radius: 6px;
+}
+.prewarm-list li.prewarm-drop-target {
+  outline: 2px solid var(--focus);
+}
+.prewarm-list li .prewarm-drag {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 30px;
+  padding: 10px 5px;
+  border: 0;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: grab;
+  touch-action: none;
+}
+.prewarm-list li .prewarm-drag:active {
+  cursor: grabbing;
+}
+.prewarm-list li .prewarm-step {
   display: flex;
   gap: 10px;
   text-align: left;
@@ -89,9 +112,17 @@
   color: var(--text);
   font-size: 13px;
 }
-.prewarm-list li button.selected {
+.prewarm-list li .prewarm-step.selected {
   background: var(--surface-hover);
   font-weight: 600;
+}
+.prewarm-announcement {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
 }
 .prewarm-list label,
 .prewarm-form label {
