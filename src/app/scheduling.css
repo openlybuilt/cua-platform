@@ -74,10 +74,10 @@
 .run-vm-actions { display: flex; align-items: center; gap: 10px; }
 .run-vm-actions a { display: inline-flex; align-items: center; gap: 4px; color: var(--text); font-size: 12px; white-space: nowrap; }
 .run-vm-fullscreen { display: inline-flex; align-items: center; gap: 6px; padding: 7px 10px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); color: var(--text); font-size: 12px; cursor: pointer; }
-.run-vm-dialog { display: flex; flex-direction: column; width: min(920px, calc(100% - 32px)); height: min(650px, 80dvh); }
+.run-vm-dialog { display: flex; flex-direction: column; width: min(1180px, calc(100% - 32px)); height: min(750px, 90dvh); }
 .run-vm-dialog .dialog-heading { flex: none; margin-bottom: 12px; }
 .run-vm-dialog iframe { flex: 1; width: 100%; min-height: 0; border: 0; background: var(--surface); }
-@media (max-width: 700px) { .run-vm-heading { flex-wrap: wrap; } .run-vm-dialog { width: calc(100% - 16px); height: 78dvh; padding: 16px; } }
+@media (max-width: 700px) { .run-vm-heading { flex-wrap: wrap; } .run-vm-dialog { width: calc(100% - 16px); height: 92dvh; padding: 16px; } }
 .run-layout aside > details { margin-top: 24px; }
 .run-layout summary { cursor: pointer; }
 .run-logs pre { overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; }
