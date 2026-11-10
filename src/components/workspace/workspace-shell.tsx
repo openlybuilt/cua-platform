@@ -17,7 +17,7 @@ export function WorkspaceShell({ children, view, onViewChange }: { children: Rea
   }
   return <div className={`workspace-shell${collapsed ? " workspace-shell--collapsed" : ""}`}>
     <aside className="workspace-sidebar">
-      <div className="workspace-brand">Openly</div>
+      <a className="workspace-brand" href="https://openlybuilt.com" aria-label="Openly website">Openly</a>
       <button type="button" className="workspace-sidebar-toggle" aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"} aria-expanded={!collapsed} aria-controls="workspace-navigation" onClick={toggleSidebar}><Menu size={18} aria-hidden="true" /></button>
       <nav id="workspace-navigation" aria-label="Workspace">
         <button type="button" className={`workspace-nav-item${view === "home" ? " workspace-nav-item--current" : ""}`} aria-label="Home" title={collapsed ? "Home" : undefined} aria-current={view === "home" ? "page" : undefined} onClick={() => onViewChange("home")}><House size={17} aria-hidden="true" /><span className="workspace-nav-label">Home</span></button>
