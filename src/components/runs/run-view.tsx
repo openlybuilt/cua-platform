@@ -10,7 +10,7 @@ import { stepChoices, stepSummary } from "@/components/workflows/step-editor";
 type Event = { timestamp: string; kind: string; status: string; stepIndex?: number; stepType?: string; action?: string; durationMs?: number; usage?: { inputTokens: number; outputTokens: number } };
 const prewarmLabels: Record<string, string> = { goto: "Open a website", fill: "Fill a field", click: "Click an element", wait_for: "Wait" };
 function eventLabel(event: Event): string {
-  if (event.kind === "prewarming") return `Prewarming: ${prewarmLabels[event.stepType ?? ""] ?? "Step"}`;
+  if (event.kind === "prewarming") return `[PREWARMING] ${prewarmLabels[event.stepType ?? ""] ?? "Step"}`;
   return event.kind === "step" ? event.stepType ?? "Step" : event.action ?? event.kind;
 }
 const exampleEvents: Array<Event & { offset: number }> = [
@@ -86,7 +86,7 @@ export function RunView({ initial, onBack, onRunUpdate, example }: { initial: Ru
         <details className="run-log-panel" open={logsOpen} onToggle={(event) => setLogsOpen(event.currentTarget.open)}>
           <summary className="run-log-heading"><span>Logs</span><ChevronDown size={16} aria-hidden="true" /></summary>
           <label className="run-log-search"><Search size={14} aria-hidden="true" /><input type="search" aria-label="Search logs" placeholder="Search logs" value={logQuery} onChange={(event) => setLogQuery(event.target.value)} /></label>
-          {logsError ? <p className="run-log-message">Logs are temporarily unavailable.</p> : events === undefined ? <p className="run-log-message">Loading logs…</p> : !events.length ? <p className="run-log-message">No logs available for this run.</p> : !matchingEvents?.length ? <p className="run-log-message">No logs match your search.</p> : <ol className="run-logs">{[...matchingEvents].reverse().map((event, index) => <li key={`${event.timestamp}-${index}`}><div className="run-log-row"><strong>{eventLabel(event)}: <span className={`run-status--${statusTone(event.status)}`}>{statusLabel(event.status).toLowerCase()}</span></strong><time dateTime={event.timestamp}>{Number.isNaN(Date.parse(event.timestamp)) ? "" : new Date(event.timestamp).toLocaleTimeString()}</time></div><details className="run-log-json"><summary>View JSON <ChevronDown size={12} aria-hidden="true" /></summary><pre>{JSON.stringify(event, null, 2)}</pre></details></li>)}</ol>}
+          {logsError ? <p className="run-log-message">Logs are temporarily unavailable.</p> : events === undefined ? <p className="run-log-message">Loading logs…</p> : !events.length ? <p className="run-log-message">No logs available for this run.</p> : !matchingEvents?.length ? <p className="run-log-message">No logs match your search.</p> : <ol className="run-logs">{[...matchingEvents].reverse().map((event, index) => <li key={`${event.timestamp}-${index}`}><div className="run-log-row"><strong>{event.kind === "prewarming" ? <><span className="run-log-prewarming">[PREWARMING]</span>{" "}{prewarmLabels[event.stepType ?? ""] ?? "Step"}</> : eventLabel(event)}: <span className={`run-status--${statusTone(event.status)}`}>{statusLabel(event.status).toLowerCase()}</span></strong><time dateTime={event.timestamp}>{Number.isNaN(Date.parse(event.timestamp)) ? "" : new Date(event.timestamp).toLocaleTimeString()}</time></div><details className="run-log-json"><summary>View JSON <ChevronDown size={12} aria-hidden="true" /></summary><pre>{JSON.stringify(event, null, 2)}</pre></details></li>)}</ol>}
         </details>
       </aside>
     </main>
